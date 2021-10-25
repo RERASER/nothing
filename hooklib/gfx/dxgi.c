@@ -21,6 +21,8 @@ typedef HRESULT (WINAPI *CreateDXGIFactory2_t)(
         REFIID riid,
         void **factory);
 
+static HRESULT hook_factory(REFIID riid, void **factory);
+
 static HRESULT STDMETHODCALLTYPE my_IDXGIFactory_CreateSwapChain(
         IDXGIFactory *self,
         IUnknown *device,
@@ -125,43 +127,22 @@ fail:
 
 HRESULT WINAPI CreateDXGIFactory(REFIID riid, void **factory)
 {
-    struct com_proxy *proxy;
-    IDXGIFactoryVtbl *vtbl;
-    IDXGIFactory *api;
     HRESULT hr;
 
     dprintf("DXGI: CreateDXGIFactory hook hit\n");
 
-    api = NULL;
     hr = next_CreateDXGIFactory(riid, factory);
 
     if (FAILED(hr)) {
         dprintf("DXGI: CreateDXGIFactory returned %x\n", (int) hr);
 
-        goto fail;
+        return hr;
     }
 
-    if (memcmp(riid, &IID_IDXGIFactory, sizeof(*riid)) == 0) {
-        api = *factory;
-        hr = com_proxy_wrap(&proxy, api, sizeof(*api->lpVtbl));
+    hr = hook_factory(riid, factory);
 
-        if (FAILED(hr)) {
-            dprintf("DXGI: com_proxy_wrap returned %x\n", (int) hr);
-
-            goto fail;
-        }
-
-        vtbl = proxy->vptr;
-        vtbl->CreateSwapChain = my_IDXGIFactory_CreateSwapChain;
-
-        *factory = proxy;
-    }
-
-    return hr;
-
-fail:
-    if (api != NULL) {
-        IDXGIFactory_Release(api);
+    if (FAILED(hr)) {
+        return hr;
     }
 
     return hr;
@@ -169,43 +150,22 @@ fail:
 
 HRESULT WINAPI CreateDXGIFactory1(REFIID riid, void **factory)
 {
-    struct com_proxy *proxy;
-    IDXGIFactory1 *api;
-    IDXGIFactory1Vtbl *vtbl;
     HRESULT hr;
 
     dprintf("DXGI: CreateDXGIFactory1 hook hit\n");
 
-    api = NULL;
     hr = next_CreateDXGIFactory1(riid, factory);
 
     if (FAILED(hr)) {
         dprintf("DXGI: CreateDXGIFactory1 returned %x\n", (int) hr);
 
-        goto fail;
+        return hr;
     }
 
-    if (memcmp(riid, &IID_IDXGIFactory1, sizeof(*riid)) == 0) {
-        api = *factory;
-        hr = com_proxy_wrap(&proxy, api, sizeof(*api->lpVtbl));
+    hr = hook_factory(riid, factory);
 
-        if (FAILED(hr)) {
-            dprintf("DXGI: com_proxy_wrap returned %x\n", (int) hr);
-
-            goto fail;
-        }
-
-        vtbl = proxy->vptr;
-        vtbl->CreateSwapChain = my_IDXGIFactory1_CreateSwapChain;
-
-        *factory = proxy;
-    }
-
-    return hr;
-
-fail:
-    if (api != NULL) {
-        IDXGIFactory1_Release(api);
+    if (FAILED(hr)) {
+        return hr;
     }
 
     return hr;
@@ -213,9 +173,6 @@ fail:
 
 HRESULT WINAPI CreateDXGIFactory2(UINT flags, REFIID riid, void **factory)
 {
-    struct com_proxy *proxy;
-    IDXGIFactory2 *api;
-    IDXGIFactory2Vtbl *vtbl;
     HRESULT hr;
 
     dprintf("DXGI: CreateDXGIFactory2 hook hit\n");
@@ -226,18 +183,41 @@ HRESULT WINAPI CreateDXGIFactory2(UINT flags, REFIID riid, void **factory)
         return CreateDXGIFactory1(riid, factory);
     }
 
-    api = NULL;
     hr = next_CreateDXGIFactory2(flags, riid, factory);
 
     if (FAILED(hr)) {
         dprintf("DXGI: CreateDXGIFactory2 returned %x\n", (int) hr);
 
-        goto fail;
+        return hr;
     }
 
-    if (memcmp(riid, &IID_IDXGIFactory2, sizeof(*riid)) == 0) {
-        api = *factory;
-        hr = com_proxy_wrap(&proxy, api, sizeof(*api->lpVtbl));
+    hr = hook_factory(riid, factory);
+
+    if (FAILED(hr)) {
+        return hr;
+    }
+
+    return hr;
+}
+
+static HRESULT hook_factory(REFIID riid, void **factory)
+{
+    struct com_proxy *proxy;
+    IDXGIFactory *api_0;
+    IDXGIFactory1 *api_1;
+    IDXGIFactory2 *api_2;
+    IDXGIFactoryVtbl *vtbl_0;
+    IDXGIFactory1Vtbl *vtbl_1;
+    IDXGIFactory2Vtbl *vtbl_2;
+    HRESULT hr;
+
+    api_0 = NULL;
+    api_1 = NULL;
+    api_2 = NULL;
+
+    if (memcmp(riid, &IID_IDXGIFactory, sizeof(*riid)) == 0) {
+        api_0 = *factory;
+        hr = com_proxy_wrap(&proxy, api_0, sizeof(*api_0->lpVtbl));
 
         if (FAILED(hr)) {
             dprintf("DXGI: com_proxy_wrap returned %x\n", (int) hr);
@@ -245,17 +225,51 @@ HRESULT WINAPI CreateDXGIFactory2(UINT flags, REFIID riid, void **factory)
             goto fail;
         }
 
-        vtbl = proxy->vptr;
-        vtbl->CreateSwapChain = my_IDXGIFactory2_CreateSwapChain;
+        vtbl_0 = proxy->vptr;
+        vtbl_0->CreateSwapChain = my_IDXGIFactory_CreateSwapChain;
+
+        *factory = proxy;
+    } else if (memcmp(riid, &IID_IDXGIFactory1, sizeof(*riid)) == 0) {
+        api_1 = *factory;
+        hr = com_proxy_wrap(&proxy, api_1, sizeof(*api_1->lpVtbl));
+
+        if (FAILED(hr)) {
+            dprintf("DXGI: com_proxy_wrap returned %x\n", (int) hr);
+
+            goto fail;
+        }
+
+        vtbl_1 = proxy->vptr;
+        vtbl_1->CreateSwapChain = my_IDXGIFactory1_CreateSwapChain;
+
+        *factory = proxy;
+    } else if (memcmp(riid, &IID_IDXGIFactory2, sizeof(*riid)) == 0) {
+        api_2 = *factory;
+        hr = com_proxy_wrap(&proxy, api_2, sizeof(*api_2->lpVtbl));
+
+        if (FAILED(hr)) {
+            dprintf("DXGI: com_proxy_wrap returned %x\n", (int) hr);
+
+            goto fail;
+        }
+
+        vtbl_2 = proxy->vptr;
+        vtbl_2->CreateSwapChain = my_IDXGIFactory2_CreateSwapChain;
 
         *factory = proxy;
     }
 
-    return hr;
+    return S_OK;
 
 fail:
-    if (api != NULL) {
-        IDXGIFactory2_Release(api);
+    if (api_0 != NULL) {
+        IDXGIFactory_Release(api_0);
+    }
+    if (api_1 != NULL) {
+        IDXGIFactory1_Release(api_1);
+    }
+    if (api_2 != NULL) {
+        IDXGIFactory2_Release(api_2);
     }
 
     return hr;
