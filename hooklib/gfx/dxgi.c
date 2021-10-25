@@ -1,5 +1,6 @@
 #include <windows.h>
 #include <dxgi.h>
+#include <dxgi1_3.h>
 
 #include <assert.h>
 #include <stdlib.h>
@@ -15,6 +16,10 @@
 
 typedef HRESULT (WINAPI *CreateDXGIFactory_t)(REFIID riid, void **factory);
 typedef HRESULT (WINAPI *CreateDXGIFactory1_t)(REFIID riid, void **factory);
+typedef HRESULT (WINAPI *CreateDXGIFactory2_t)(
+        UINT flags,
+        REFIID riid,
+        void **factory);
 
 static HRESULT STDMETHODCALLTYPE my_IDXGIFactory_CreateSwapChain(
         IDXGIFactory *self,
@@ -26,10 +31,16 @@ static HRESULT STDMETHODCALLTYPE my_IDXGIFactory1_CreateSwapChain(
         IUnknown *device,
         DXGI_SWAP_CHAIN_DESC *desc,
         IDXGISwapChain **swapchain);
+static HRESULT STDMETHODCALLTYPE my_IDXGIFactory2_CreateSwapChain(
+        IDXGIFactory2 *self,
+        IUnknown *device,
+        DXGI_SWAP_CHAIN_DESC *desc,
+        IDXGISwapChain **swapchain);
 
 static struct gfx_config gfx_config;
 static CreateDXGIFactory_t next_CreateDXGIFactory;
 static CreateDXGIFactory1_t next_CreateDXGIFactory1;
+static CreateDXGIFactory2_t next_CreateDXGIFactory2;
 
 static const struct hook_symbol dxgi_hooks[] = {
     {
@@ -40,6 +51,10 @@ static const struct hook_symbol dxgi_hooks[] = {
         .name = "CreateDXGIFactory1",
         .patch = CreateDXGIFactory1,
         .link = (void **) &next_CreateDXGIFactory1,
+    }, {
+        .name = "CreateDXGIFactory2",
+        .patch = CreateDXGIFactory2,
+        .link = (void **) &next_CreateDXGIFactory2,
     },
 };
 
@@ -75,6 +90,11 @@ void gfx_dxgi_hook_init(const struct gfx_config *cfg, HINSTANCE self)
                     dxgi,
                     "CreateDXGIFactory1");
         }
+        if (next_CreateDXGIFactory2 == NULL) {
+            next_CreateDXGIFactory2 = (CreateDXGIFactory2_t) GetProcAddress(
+                    dxgi,
+                    "CreateDXGIFactory2");
+        }
 
         if (next_CreateDXGIFactory == NULL) {
             dprintf("DXGI: CreateDXGIFactory not found in loaded dxgi.dll\n");
@@ -86,6 +106,9 @@ void gfx_dxgi_hook_init(const struct gfx_config *cfg, HINSTANCE self)
 
             goto fail;
         }
+
+        /* `CreateDXGIFactory2` was introduced in Windows 8.1 and the original
+         * Nu runs Windows 8, so do not require it to exist */
     }
 
     if (self != NULL) {
@@ -188,6 +211,56 @@ fail:
     return hr;
 }
 
+HRESULT WINAPI CreateDXGIFactory2(UINT flags, REFIID riid, void **factory)
+{
+    struct com_proxy *proxy;
+    IDXGIFactory2 *api;
+    IDXGIFactory2Vtbl *vtbl;
+    HRESULT hr;
+
+    dprintf("DXGI: CreateDXGIFactory2 hook hit\n");
+
+    if (next_CreateDXGIFactory2 == NULL) {
+        dprintf("DXGI: CreateDXGIFactory2 not available, forwarding to CreateDXGIFactory1\n");
+
+        return CreateDXGIFactory1(riid, factory);
+    }
+
+    api = NULL;
+    hr = next_CreateDXGIFactory2(flags, riid, factory);
+
+    if (FAILED(hr)) {
+        dprintf("DXGI: CreateDXGIFactory2 returned %x\n", (int) hr);
+
+        goto fail;
+    }
+
+    if (memcmp(riid, &IID_IDXGIFactory2, sizeof(*riid)) == 0) {
+        api = *factory;
+        hr = com_proxy_wrap(&proxy, api, sizeof(*api->lpVtbl));
+
+        if (FAILED(hr)) {
+            dprintf("DXGI: com_proxy_wrap returned %x\n", (int) hr);
+
+            goto fail;
+        }
+
+        vtbl = proxy->vptr;
+        vtbl->CreateSwapChain = my_IDXGIFactory2_CreateSwapChain;
+
+        *factory = proxy;
+    }
+
+    return hr;
+
+fail:
+    if (api != NULL) {
+        IDXGIFactory2_Release(api);
+    }
+
+    return hr;
+}
+
 static HRESULT STDMETHODCALLTYPE my_IDXGIFactory_CreateSwapChain(
         IDXGIFactory *self,
         IUnknown *device,
@@ -254,6 +327,21 @@ static HRESULT STDMETHODCALLTYPE my_IDXGIFactory1_CreateSwapChain(
         IDXGISwapChain **swapchain)
 {
     dprintf("DXGI: IDXGIFactory1::CreateSwapChain hook forwarding to my_IDXGIFactory_CreateSwapChain\n");
+
+    return my_IDXGIFactory_CreateSwapChain(
+            (IDXGIFactory *) self,
+            device,
+            desc,
+            swapchain);
+}
+
+static HRESULT STDMETHODCALLTYPE my_IDXGIFactory2_CreateSwapChain(
+        IDXGIFactory2 *self,
+        IUnknown *device,
+        DXGI_SWAP_CHAIN_DESC *desc,
+        IDXGISwapChain **swapchain)
+{
+    dprintf("DXGI: IDXGIFactory2::CreateSwapChain hook forwarding to my_IDXGIFactory_CreateSwapChain\n");
 
     return my_IDXGIFactory_CreateSwapChain(
             (IDXGIFactory *) self,
