@@ -1,6 +1,9 @@
 #include <windows.h>
+#include <shlwapi.h>
 
+#include <stdbool.h>
 #include <stdlib.h>
+#include <wchar.h>
 
 #include "amex/amex.h"
 
@@ -23,6 +26,7 @@
 #include "platform/platform.h"
 
 #include "util/dprintf.h"
+#include "util/lib.h"
 
 static HMODULE idz_hook_mod;
 static process_entry_t idz_startup;
@@ -30,6 +34,8 @@ static struct idz_hook_config idz_hook_cfg;
 
 static DWORD CALLBACK idz_pre_startup(void)
 {
+    wchar_t *module_path;
+    wchar_t *file_name;
     HRESULT hr;
 
     dprintf("--- Begin idz_pre_startup ---\n");
@@ -37,6 +43,25 @@ static DWORD CALLBACK idz_pre_startup(void)
     /* Config load */
 
     idz_hook_config_load(&idz_hook_cfg, L".\\segatools.ini");
+
+    module_path = module_file_name(NULL);
+
+    if (module_path != NULL) {
+        file_name = PathFindFileNameW(module_path);
+
+        _wcslwr(file_name);
+
+        if (wcsstr(file_name, L"serverbox") != NULL) {
+            dprintf("Executable filename contains 'ServerBox', disabling full-screen mode\n");
+
+            idz_hook_cfg.gfx.windowed = true;
+            idz_hook_cfg.gfx.framed = true;
+        }
+
+        free(module_path);
+
+        module_path = NULL;
+    }
 
     /* Hook Win32 APIs */
 

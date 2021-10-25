@@ -8,6 +8,7 @@ shared_library(
     dependencies : [
         capnhook.get_variable('hook_dep'),
         capnhook.get_variable('hooklib_dep'),
+        shlwapi_lib,
         xinput_lib,
     ],
     link_with : [
