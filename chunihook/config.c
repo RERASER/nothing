@@ -13,7 +13,7 @@
 #include "chunihook/config.h"
 
 #include "hooklib/config.h"
-#include "hooklib/gfx.h"
+#include "hooklib/gfx/gfx.h"
 
 #include "platform/config.h"
 #include "platform/platform.h"

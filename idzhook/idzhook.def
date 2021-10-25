@@ -1,6 +1,11 @@
 LIBRARY idzhook
 
 EXPORTS
+    CreateDXGIFactory
+    CreateDXGIFactory1
+    CreateDXGIFactory2
+    D3D11CreateDevice
+    D3D11CreateDeviceAndSwapChain
     aime_io_get_api_version
     aime_io_init
     aime_io_led_set_color

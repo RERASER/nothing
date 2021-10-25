@@ -10,7 +10,7 @@
 
 #include "hooklib/config.h"
 #include "hooklib/dll.h"
-#include "hooklib/gfx.h"
+#include "hooklib/gfx/gfx.h"
 
 #include "util/dprintf.h"
 
@@ -24,7 +24,6 @@ static HRESULT STDMETHODCALLTYPE my_CreateDevice(
         DWORD flags,
         D3DPRESENT_PARAMETERS *pp,
         IDirect3DDevice9 **pdev);
-static HRESULT gfx_frame_window(HWND hwnd);
 
 static struct gfx_config gfx_config;
 static Direct3DCreate9_t next_Direct3DCreate9;
@@ -37,7 +36,7 @@ static const struct hook_symbol gfx_hooks[] = {
     },
 };
 
-void gfx_hook_init(const struct gfx_config *cfg, HINSTANCE self)
+void gfx_d3d9_hook_init(const struct gfx_config *cfg, HINSTANCE self)
 {
     HMODULE d3d9;
 
@@ -151,67 +150,4 @@ static HRESULT STDMETHODCALLTYPE my_CreateDevice(
     dprintf("Gfx: IDirect3D9:: Using Display No %x\n", gfx_config.monitor);
 
     return IDirect3D9_CreateDevice(real, gfx_config.monitor, type, hwnd, flags, pp, pdev);
-}
-
-static HRESULT gfx_frame_window(HWND hwnd)
-{
-    HRESULT hr;
-    DWORD error;
-    LONG style;
-    RECT rect;
-    BOOL ok;
-
-    SetLastError(ERROR_SUCCESS);
-    style = GetWindowLongW(hwnd, GWL_STYLE);
-    error = GetLastError();
-
-    if (error != ERROR_SUCCESS) {
-        hr = HRESULT_FROM_WIN32(error);
-        dprintf("Gfx: GetWindowLongPtrW(%p, GWL_STYLE) failed: %x\n",
-                hwnd,
-                (int) hr);
-
-        return hr;
-    }
-
-    ok = GetClientRect(hwnd, &rect);
-
-    if (!ok) {
-        hr = HRESULT_FROM_WIN32(GetLastError());
-        dprintf("Gfx: GetClientRect(%p) failed: %x\n", hwnd, (int) hr);
-
-        return hr;
-    }
-
-    style |= WS_BORDER | WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU;
-    ok = AdjustWindowRect(&rect, style, FALSE);
-
-    if (!ok) {
-        /* come on... */
-        hr = HRESULT_FROM_WIN32(GetLastError());
-        dprintf("Gfx: AdjustWindowRect failed: %x\n", (int) hr);
-
-        return hr;
-    }
-
-    /* This... always seems to set an error, even though it works? idk */
-    SetWindowLongW(hwnd, GWL_STYLE, style);
-
-    ok = SetWindowPos(
-            hwnd,
-            HWND_TOP,
-            rect.left,
-            rect.top,
-            rect.right - rect.left,
-            rect.bottom - rect.top,
-            SWP_FRAMECHANGED | SWP_NOMOVE);
-
-    if (!ok) {
-        hr = HRESULT_FROM_WIN32(GetLastError());
-        dprintf("Gfx: SetWindowPos(%p) failed: %x\n", hwnd, (int) hr);
-
-        return hr;
-    }
-
-    return S_OK;
 }

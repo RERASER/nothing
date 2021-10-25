@@ -9,6 +9,9 @@
 #include "hook/process.h"
 
 #include "hooklib/dvd.h"
+#include "hooklib/gfx/d3d11.h"
+#include "hooklib/gfx/dxgi.h"
+#include "hooklib/gfx/gfx.h"
 #include "hooklib/serial.h"
 #include "hooklib/spike.h"
 
@@ -38,6 +41,9 @@ static DWORD CALLBACK idz_pre_startup(void)
     /* Hook Win32 APIs */
 
     serial_hook_init();
+    gfx_hook_init(&idz_hook_cfg.gfx, idz_hook_mod);
+    gfx_d3d11_hook_init(&idz_hook_cfg.gfx, idz_hook_mod);
+    gfx_dxgi_hook_init(&idz_hook_cfg.gfx, idz_hook_mod);
     zinput_hook_init(&idz_hook_cfg.zinput);
     dvd_hook_init(&idz_hook_cfg.dvd, idz_hook_mod);
 

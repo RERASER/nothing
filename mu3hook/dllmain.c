@@ -9,6 +9,10 @@
 #include "hook/process.h"
 
 #include "hooklib/dvd.h"
+#include "hooklib/gfx/d3d9.h"
+#include "hooklib/gfx/d3d11.h"
+#include "hooklib/gfx/dxgi.h"
+#include "hooklib/gfx/gfx.h"
 #include "hooklib/serial.h"
 #include "hooklib/spike.h"
 
@@ -39,6 +43,9 @@ static DWORD CALLBACK mu3_pre_startup(void)
 
     dvd_hook_init(&mu3_hook_cfg.dvd, mu3_hook_mod);
     gfx_hook_init(&mu3_hook_cfg.gfx, mu3_hook_mod);
+    gfx_d3d9_hook_init(&mu3_hook_cfg.gfx, mu3_hook_mod);
+    gfx_d3d11_hook_init(&mu3_hook_cfg.gfx, mu3_hook_mod);
+    gfx_dxgi_hook_init(&mu3_hook_cfg.gfx, mu3_hook_mod);
     serial_hook_init();
 
     /* Initialize emulation hooks */

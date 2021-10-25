@@ -5,7 +5,7 @@
 #include "board/config.h"
 
 #include "hooklib/dvd.h"
-#include "hooklib/gfx.h"
+#include "hooklib/gfx/gfx.h"
 
 #include "mu3hook/mu3-dll.h"
 

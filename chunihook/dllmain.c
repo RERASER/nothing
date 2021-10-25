@@ -14,7 +14,8 @@
 
 #include "hook/process.h"
 
-#include "hooklib/gfx.h"
+#include "hooklib/gfx/d3d9.h"
+#include "hooklib/gfx/gfx.h"
 #include "hooklib/serial.h"
 #include "hooklib/spike.h"
 
@@ -61,6 +62,7 @@ static DWORD CALLBACK chuni_pre_startup(void)
     /* Hook Win32 APIs */
 
     gfx_hook_init(&chuni_hook_cfg.gfx, chuni_hook_mod);
+    gfx_d3d9_hook_init(&chuni_hook_cfg.gfx, chuni_hook_mod);
     serial_hook_init();
 
     /* Initialize emulation hooks */
