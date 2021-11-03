@@ -12,5 +12,3 @@ struct gfx_config {
 };
 
 void gfx_hook_init(const struct gfx_config *cfg, HINSTANCE self);
-
-HRESULT gfx_frame_window(HWND hwnd);

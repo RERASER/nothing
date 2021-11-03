@@ -8,9 +8,11 @@
 #include "hook/com-proxy.h"
 #include "hook/table.h"
 
-#include "hooklib/config.h"
 #include "hooklib/dll.h"
-#include "hooklib/gfx/gfx.h"
+
+#include "gfxhook/config.h"
+#include "gfxhook/gfx.h"
+#include "gfxhook/util.h"
 
 #include "util/dprintf.h"
 
@@ -144,10 +146,10 @@ static HRESULT STDMETHODCALLTYPE my_CreateDevice(
     }
 
     if (gfx_config.framed) {
-        gfx_frame_window(hwnd);
+        gfx_util_frame_window(hwnd);
     }
 
-    dprintf("Gfx: IDirect3D9:: Using Display No %x\n", gfx_config.monitor);
+    dprintf("Gfx: Using adapter %d\n", gfx_config.monitor);
 
     return IDirect3D9_CreateDevice(real, gfx_config.monitor, type, hwnd, flags, pp, pdev);
 }

@@ -1,55 +1,60 @@
 #include <windows.h>
 
-#include <assert.h>
 #include <stdbool.h>
-#include <stdlib.h>
 
-#include "hook/table.h"
-
-#include "hooklib/config.h"
-#include "hooklib/gfx/gfx.h"
+#include "gfxhook/util.h"
 
 #include "util/dprintf.h"
 
-typedef BOOL (WINAPI *ShowWindow_t)(HWND hWnd, int nCmdShow);
-
-static BOOL WINAPI hook_ShowWindow(HWND hWnd, int nCmdShow);
-
-static struct gfx_config gfx_config;
-static ShowWindow_t next_ShowWindow;
-
-static const struct hook_symbol gfx_hooks[] = {
-    {
-        .name = "ShowWindow",
-        .patch = hook_ShowWindow,
-        .link = (void **) &next_ShowWindow,
-    },
-};
-
-void gfx_hook_init(const struct gfx_config *cfg, HINSTANCE self)
+void gfx_util_ensure_win_visible(HWND hwnd)
 {
-    assert(cfg != NULL);
+    /*
+     * Ensure window is maximized to avoid a Windows 10 issue where a
+     * fullscreen swap chain is not created because the window is minimized
+     * at the time of creation.
+     */
+    ShowWindow(hwnd, SW_RESTORE);
+}
 
-    if (!cfg->enable) {
+void gfx_util_borderless_fullscreen_windowed(HWND hwnd, LONG width, LONG height)
+{
+    BOOL ok;
+    HRESULT hr;
+
+    dprintf("Gfx: Resizing window to %ldx%ld\n", width, height);
+
+    SetWindowLongPtrW(hwnd, GWL_STYLE, WS_POPUP);
+    SetWindowLongPtrW(hwnd, GWL_EXSTYLE, WS_EX_TOPMOST);
+
+    ok = SetWindowPos(
+            hwnd,
+            HWND_TOP,
+            0,
+            0,
+            width,
+            height,
+            SWP_FRAMECHANGED | SWP_NOSENDCHANGING);
+
+    if (!ok) {
+        /* come on... */
+        hr = HRESULT_FROM_WIN32(GetLastError());
+        dprintf("Gfx: SetWindowPos failed: %x\n", (int) hr);
+
         return;
     }
 
-    memcpy(&gfx_config, cfg, sizeof(*cfg));
-    hook_table_apply(NULL, "user32.dll", gfx_hooks, _countof(gfx_hooks));
-}
+    ok = ShowWindow(hwnd, SW_SHOWMAXIMIZED);
 
-static BOOL WINAPI hook_ShowWindow(HWND hWnd, int nCmdShow)
-{
-    dprintf("Gfx: ShowWindow hook hit\n");
+    if (!ok) {
+        /* come on... */
+        hr = HRESULT_FROM_WIN32(GetLastError());
+        dprintf("Gfx: ShowWindow failed: %x\n", (int) hr);
 
-    if (!gfx_config.framed && nCmdShow == SW_RESTORE) {
-        nCmdShow = SW_SHOW;
+        return;
     }
-
-    return next_ShowWindow(hWnd, nCmdShow);
 }
 
-HRESULT gfx_frame_window(HWND hwnd)
+HRESULT gfx_util_frame_window(HWND hwnd)
 {
     HRESULT hr;
     DWORD error;

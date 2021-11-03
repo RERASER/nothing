@@ -14,6 +14,7 @@ shared_library(
         amex_lib,
         board_lib,
         chuniio_lib,
+        gfxhook_lib,
         hooklib_lib,
         jvs_lib,
         platform_lib,

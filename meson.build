@@ -43,6 +43,8 @@ subdir('jvs')
 subdir('platform')
 subdir('util')
 
+subdir('gfxhook')
+
 subdir('aimeio')
 subdir('chuniio')
 subdir('divaio')

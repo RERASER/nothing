@@ -7,9 +7,10 @@
 #include "board/config.h"
 #include "board/sg-reader.h"
 
+#include "gfxhook/config.h"
+
 #include "hooklib/config.h"
 #include "hooklib/dvd.h"
-#include "hooklib/gfx/gfx.h"
 
 #include "idzhook/config.h"
 #include "idzhook/idz-dll.h"

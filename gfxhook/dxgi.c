@@ -5,12 +5,12 @@
 #include <assert.h>
 #include <stdlib.h>
 
+#include "gfxhook/gfx.h"
+
 #include "hook/com-proxy.h"
 #include "hook/table.h"
 
-#include "hooklib/config.h"
 #include "hooklib/dll.h"
-#include "hooklib/gfx/gfx.h"
 
 #include "util/dprintf.h"
 

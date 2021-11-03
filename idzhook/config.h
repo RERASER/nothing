@@ -7,8 +7,9 @@
 
 #include "board/sg-reader.h"
 
+#include "gfxhook/gfx.h"
+
 #include "hooklib/dvd.h"
-#include "hooklib/gfx/gfx.h"
 
 #include "idzhook/idz-dll.h"
 #include "idzhook/zinput.h"

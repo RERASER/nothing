@@ -10,7 +10,7 @@
 #include "chunihook/chuni-dll.h"
 #include "chunihook/slider.h"
 
-#include "hooklib/gfx/gfx.h"
+#include "gfxhook/gfx.h"
 
 #include "platform/platform.h"
 

@@ -9,12 +9,13 @@
 
 #include "board/sg-reader.h"
 
+#include "gfxhook/d3d11.h"
+#include "gfxhook/dxgi.h"
+#include "gfxhook/gfx.h"
+
 #include "hook/process.h"
 
 #include "hooklib/dvd.h"
-#include "hooklib/gfx/d3d11.h"
-#include "hooklib/gfx/dxgi.h"
-#include "hooklib/gfx/gfx.h"
 #include "hooklib/serial.h"
 #include "hooklib/spike.h"
 

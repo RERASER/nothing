@@ -12,10 +12,11 @@
 
 #include "chuniio/chuniio.h"
 
+#include "gfxhook/d3d9.h"
+#include "gfxhook/gfx.h"
+
 #include "hook/process.h"
 
-#include "hooklib/gfx/d3d9.h"
-#include "hooklib/gfx/gfx.h"
 #include "hooklib/serial.h"
 #include "hooklib/spike.h"
 

@@ -6,12 +6,13 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
+#include "gfxhook/gfx.h"
+#include "gfxhook/util.h"
+
 #include "hook/com-proxy.h"
 #include "hook/table.h"
 
-#include "hooklib/config.h"
 #include "hooklib/dll.h"
-#include "hooklib/gfx/gfx.h"
 
 #include "util/dprintf.h"
 
@@ -176,30 +177,8 @@ HRESULT WINAPI D3D11CreateDeviceAndSwapChain(
     }
 
     if (hwnd != NULL) {
-        /*
-        * Ensure window is maximized to avoid a Windows 10 issue where a
-        * fullscreen swap chain is not created because the window is minimized
-        * at the time of creation.
-        */
-        ShowWindow(hwnd, SW_RESTORE);
-
-        if (!gfx_config.framed && width > 0 && height > 0) {
-            dprintf("DXGI: Resizing window to %ldx%ld\n", width, height);
-
-            SetWindowLongPtrW(hwnd, GWL_STYLE, WS_POPUP);
-            SetWindowLongPtrW(hwnd, GWL_EXSTYLE, WS_EX_TOPMOST);
-
-            SetWindowPos(
-                    hwnd,
-                    HWND_TOP,
-                    0,
-                    0,
-                    width,
-                    height,
-                    SWP_FRAMECHANGED | SWP_NOSENDCHANGING);
-
-            ShowWindow(hwnd, SW_SHOWMAXIMIZED);
-        }
+        gfx_util_ensure_win_visible(hwnd);
+        gfx_util_borderless_fullscreen_windowed(hwnd, width, height);
     }
 
     return next_D3D11CreateDeviceAndSwapChain(
