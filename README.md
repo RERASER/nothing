@@ -14,6 +14,8 @@ Loaders and hardware emulators for SEGA games that run on the Nu and ALLS platfo
   * [Chunithm Crystal (Plus)](doc/chunihook.md)
 * Initial D
   * [Initial D Arcade Stage Zero](doc/idzhook.md)
+* Wacca
+  * Wacca Lilly R (WIP)
 
 ## End-users
 
