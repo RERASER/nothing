@@ -28,6 +28,21 @@ $(BUILD_DIR_ZIP)/idz.zip:
 	$(V)strip $(BUILD_DIR_ZIP)/idz/*.{exe,dll}
 	$(V)cd $(BUILD_DIR_ZIP)/idz ; zip -r ../idz.zip *
 
+$(BUILD_DIR_ZIP)/mercury.zip:
+	$(V)echo ... $@
+	$(V)mkdir -p $(BUILD_DIR_ZIP)/mercury
+	$(V)mkdir -p $(BUILD_DIR_ZIP)/mercury/DEVICE
+	$(V)cp $(BUILD_DIR_64)/subprojects/capnhook/inject/inject.exe \
+		$(BUILD_DIR_64)/mercuryhook/mercuryhook.dll \
+		$(DIST_DIR)/mercury/segatools.ini \
+		$(DIST_DIR)/mercury/start.bat \
+    	$(BUILD_DIR_ZIP)/mercury
+	$(V)cp pki/billing.pub \
+		pki/ca.crt \
+    	$(BUILD_DIR_ZIP)/mercury/DEVICE
+	$(V)strip $(BUILD_DIR_ZIP)/mercury/*.{exe,dll}
+	$(V)cd $(BUILD_DIR_ZIP)/mercury ; zip -r ../mercury.zip *
+
 $(BUILD_DIR_ZIP)/doc.zip: \
 		$(DOC_DIR)/config \
 		$(DOC_DIR)/chunihook.md \
@@ -40,6 +55,7 @@ $(BUILD_DIR_ZIP)/segatools.zip: \
 		$(BUILD_DIR_ZIP)/chuni.zip \
 		$(BUILD_DIR_ZIP)/doc.zip \
 		$(BUILD_DIR_ZIP)/idz.zip \
+		$(BUILD_DIR_ZIP)/mercury.zip \
 		CHANGELOG.md \
 		README.md \
 

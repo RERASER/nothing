@@ -27,6 +27,8 @@ COPY hooklib hooklib
 COPY iccard iccard
 COPY idzhook idzhook
 COPY idzio idzio
+COPY mercuryhook mercuryhook
+COPY mercuryio mercuryio
 COPY jvs jvs
 COPY minihook minihook
 COPY mu3hook mu3hook

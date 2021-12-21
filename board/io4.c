@@ -28,6 +28,7 @@ enum {
     IO4_CMD_CLEAR_BOARD_STATUS = 0x03,
     IO4_CMD_SET_GENERAL_OUTPUT = 0x04,
     IO4_CMD_SET_PWM_OUTPUT     = 0x05,
+    IO4_CMD_UNIMPLEMENTED      = 0x41,
     IO4_CMD_UPDATE_FIRMWARE    = 0x85,
 };
 
@@ -234,7 +235,12 @@ static HRESULT io4_handle_write(struct irp *irp)
     case IO4_CMD_UPDATE_FIRMWARE:
         dprintf("USB I/O: Update firmware..?\n");
 
-        return E_FAIL;
+        return E_FAIL;    
+        
+    case IO4_CMD_UNIMPLEMENTED:
+        //dprintf("USB I/O: Unimplemented cmd 41\n");
+
+        return S_OK;
 
     default:
         dprintf("USB I/O: Unknown command %02x\n", out.cmd);
