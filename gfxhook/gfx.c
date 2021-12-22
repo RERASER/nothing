@@ -26,7 +26,7 @@ static const struct hook_symbol gfx_hooks[] = {
     },
 };
 
-void gfx_hook_init(const struct gfx_config *cfg, HINSTANCE self)
+void gfx_hook_init(const struct gfx_config *cfg)
 {
     assert(cfg != NULL);
 

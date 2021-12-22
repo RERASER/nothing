@@ -67,7 +67,7 @@ static DWORD CALLBACK idz_pre_startup(void)
     /* Hook Win32 APIs */
 
     serial_hook_init();
-    gfx_hook_init(&idz_hook_cfg.gfx, idz_hook_mod);
+    gfx_hook_init(&idz_hook_cfg.gfx);
     gfx_d3d11_hook_init(&idz_hook_cfg.gfx, idz_hook_mod);
     gfx_dxgi_hook_init(&idz_hook_cfg.gfx, idz_hook_mod);
     zinput_hook_init(&idz_hook_cfg.zinput);

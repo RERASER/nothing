@@ -62,7 +62,7 @@ static DWORD CALLBACK chuni_pre_startup(void)
 
     /* Hook Win32 APIs */
 
-    gfx_hook_init(&chuni_hook_cfg.gfx, chuni_hook_mod);
+    gfx_hook_init(&chuni_hook_cfg.gfx);
     gfx_d3d9_hook_init(&chuni_hook_cfg.gfx, chuni_hook_mod);
     serial_hook_init();
 
