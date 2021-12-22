@@ -3,7 +3,6 @@
 #include <assert.h>
 #include <stdlib.h>
 
-#include "gfxhook/config.h"
 #include "gfxhook/gfx.h"
 
 #include "hook/table.h"

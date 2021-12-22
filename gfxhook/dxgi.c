@@ -5,6 +5,7 @@
 #include <assert.h>
 #include <stdlib.h>
 
+#include "gfxhook/dxgi.h"
 #include "gfxhook/gfx.h"
 
 #include "hook/com-proxy.h"

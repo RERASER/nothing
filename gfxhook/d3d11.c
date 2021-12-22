@@ -5,6 +5,7 @@
 #include <assert.h>
 #include <stdlib.h>
 
+#include "gfxhook/d3d11.h"
 #include "gfxhook/gfx.h"
 #include "gfxhook/util.h"
 
