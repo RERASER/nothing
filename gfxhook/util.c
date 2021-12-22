@@ -1,7 +1,5 @@
 #include <windows.h>
 
-#include <stdbool.h>
-
 #include "gfxhook/util.h"
 
 #include "util/dprintf.h"
@@ -16,7 +14,7 @@ void gfx_util_ensure_win_visible(HWND hwnd)
     ShowWindow(hwnd, SW_RESTORE);
 }
 
-void gfx_util_borderless_fullscreen_windowed(HWND hwnd, LONG width, LONG height)
+void gfx_util_borderless_fullscreen_windowed(HWND hwnd, UINT width, UINT height)
 {
     BOOL ok;
     HRESULT hr;
@@ -31,8 +29,8 @@ void gfx_util_borderless_fullscreen_windowed(HWND hwnd, LONG width, LONG height)
             HWND_TOP,
             0,
             0,
-            width,
-            height,
+            (int) width,
+            (int) height,
             SWP_FRAMECHANGED | SWP_NOSENDCHANGING);
 
     if (!ok) {

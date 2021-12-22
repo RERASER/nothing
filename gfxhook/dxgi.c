@@ -284,8 +284,8 @@ static HRESULT STDMETHODCALLTYPE my_IDXGIFactory_CreateSwapChain(
     struct com_proxy *proxy;
     IDXGIFactory *real;
     HWND hwnd;
-    LONG width;
-    LONG height;
+    UINT width;
+    UINT height;
 
     dprintf("DXGI: IDXGIFactory::CreateSwapChain hook hit\n");
 
@@ -300,8 +300,6 @@ static HRESULT STDMETHODCALLTYPE my_IDXGIFactory_CreateSwapChain(
         height = desc->BufferDesc.Height;
     } else {
         hwnd = NULL;
-        width = 0;
-        height = 0;
     }
 
     if (hwnd != NULL) {
@@ -323,8 +321,8 @@ static HRESULT STDMETHODCALLTYPE my_IDXGIFactory_CreateSwapChain(
                     HWND_TOP,
                     0,
                     0,
-                    width,
-                    height,
+                    (int) width,
+                    (int) height,
                     SWP_FRAMECHANGED | SWP_NOSENDCHANGING);
 
             ShowWindow(hwnd, SW_SHOWMAXIMIZED);

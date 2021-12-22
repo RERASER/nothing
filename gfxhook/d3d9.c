@@ -2,7 +2,6 @@
 #include <d3d9.h>
 
 #include <assert.h>
-#include <stdbool.h>
 #include <stdlib.h>
 
 #include "hook/com-proxy.h"
@@ -10,7 +9,6 @@
 
 #include "hooklib/dll.h"
 
-#include "gfxhook/config.h"
 #include "gfxhook/gfx.h"
 #include "gfxhook/util.h"
 
@@ -103,8 +101,6 @@ fail:
     if (d3d9 != NULL) {
         FreeLibrary(d3d9);
     }
-
-    return;
 }
 
 IDirect3D9 * WINAPI Direct3DCreate9(UINT sdk_ver)

@@ -3,13 +3,11 @@
 #include <d3d11.h>
 
 #include <assert.h>
-#include <stdbool.h>
 #include <stdlib.h>
 
 #include "gfxhook/gfx.h"
 #include "gfxhook/util.h"
 
-#include "hook/com-proxy.h"
 #include "hook/table.h"
 
 #include "hooklib/dll.h"
@@ -157,8 +155,8 @@ HRESULT WINAPI D3D11CreateDeviceAndSwapChain(
 {
     DXGI_SWAP_CHAIN_DESC *desc;
     HWND hwnd;
-    LONG width;
-    LONG height;
+    UINT width;
+    UINT height;
 
     dprintf("D3D11: D3D11CreateDeviceAndSwapChain hook hit\n");
 
@@ -172,8 +170,6 @@ HRESULT WINAPI D3D11CreateDeviceAndSwapChain(
         height = desc->BufferDesc.Height;
     } else {
         hwnd = NULL;
-        width = 0;
-        height = 0;
     }
 
     if (hwnd != NULL) {
