@@ -1,6 +1,6 @@
 #include <windows.h>
-#include <d3d11.h>
 #include <dxgi.h>
+#include <d3d11.h>
 
 #include <assert.h>
 #include <stdbool.h>
