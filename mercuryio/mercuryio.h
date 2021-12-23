@@ -5,20 +5,20 @@
 #include <stdint.h>
 
 enum {
-    MAI2_IO_OPBTN_TEST = 0x01,
-    MAI2_IO_OPBTN_SERVICE = 0x02,
+    MERCURY_IO_OPBTN_TEST = 0x01,
+    MERCURY_IO_OPBTN_SERVICE = 0x02,
 };
 
 enum {
-    MAI2_IO_GAMEBTN_1 = 0x01,
-    MAI2_IO_GAMEBTN_2 = 0x02,
-    MAI2_IO_GAMEBTN_3 = 0x04,
-    MAI2_IO_GAMEBTN_4 = 0x08,
-    MAI2_IO_GAMEBTN_5 = 0x10,
-    MAI2_IO_GAMEBTN_6 = 0x20,
-    MAI2_IO_GAMEBTN_7 = 0x40,
-    MAI2_IO_GAMEBTN_8 = 0x80,
-    MAI2_IO_GAMEBTN_SELECT = 0x100,
+    MERCURY_IO_GAMEBTN_1 = 0x01,
+    MERCURY_IO_GAMEBTN_2 = 0x02,
+    MERCURY_IO_GAMEBTN_3 = 0x04,
+    MERCURY_IO_GAMEBTN_4 = 0x08,
+    MERCURY_IO_GAMEBTN_5 = 0x10,
+    MERCURY_IO_GAMEBTN_6 = 0x20,
+    MERCURY_IO_GAMEBTN_7 = 0x40,
+    MERCURY_IO_GAMEBTN_8 = 0x80,
+    MERCURY_IO_GAMEBTN_SELECT = 0x100,
 };
 
 /* Get the version of the Wacca IO API that this DLL supports. This
@@ -47,7 +47,7 @@ HRESULT mercury_io_init(void);
 HRESULT mercury_io_poll(void);
 
 /* Get the state of the cabinet's operator buttons as of the last poll. See
-   MAI2_IO_OPBTN enum above: this contains bit mask definitions for button
+   MERCURY_IO_OPBTN enum above: this contains bit mask definitions for button
    states returned in *opbtn. All buttons are active-high.
 
    Minimum API version: 0x0100 */
@@ -55,7 +55,7 @@ HRESULT mercury_io_poll(void);
 void mercury_io_get_opbtns(uint8_t *opbtn);
 
 /* Get the state of the cabinet's gameplay buttons as of the last poll. See
-   MAI2_IO_GAMEBTN enum above for bit mask definitions. Inputs are split into
+   MERCURY_IO_GAMEBTN enum above for bit mask definitions. Inputs are split into
    a left hand side set of inputs and a right hand side set of inputs: the bit
    mappings are the same in both cases.
 

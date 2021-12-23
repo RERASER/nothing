@@ -52,11 +52,11 @@ static HRESULT mercury_io4_poll(void *ctx, struct io4_state *state)
 
     mercury_dll.get_opbtns(&opbtn);
 
-    if (opbtn & MAI2_IO_OPBTN_TEST) {
+    if (opbtn & MERCURY_IO_OPBTN_TEST) {
         state->buttons[0] |= IO4_BUTTON_TEST;
     }
 
-    if (opbtn & MAI2_IO_OPBTN_SERVICE) {
+    if (opbtn & MERCURY_IO_OPBTN_SERVICE) {
         state->buttons[0] |= IO4_BUTTON_SERVICE;
     }
 
