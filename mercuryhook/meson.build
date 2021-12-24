@@ -24,6 +24,8 @@ shared_library(
         'io4.c',
         'io4.h',
         'mercury-dll.c',
-        'mercury-dll.h'
+        'mercury-dll.h',
+        'elisabeth.h',
+        'elisabeth.c'
     ],
 )

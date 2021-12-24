@@ -12,6 +12,7 @@
 #include "mercuryhook/config.h"
 #include "mercuryhook/io4.h"
 #include "mercuryhook/mercury-dll.h"
+#include "mercuryhook/elisabeth.h"
 
 #include "platform/platform.h"
 
@@ -74,6 +75,9 @@ static DWORD CALLBACK mercury_pre_startup(void)
     if (FAILED(hr)) {
         goto fail;
     }
+
+    /* Start elisabeth Hooks for the LED and IO Board DLLs */
+    elisabeth_hook_init();
 
     /* Initialize debug helpers */
 
