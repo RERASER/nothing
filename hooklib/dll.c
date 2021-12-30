@@ -284,6 +284,8 @@ static HMODULE WINAPI hook_LoadLibraryW(const wchar_t *name)
 {
     HMODULE result;
 
+    dprintf("hook_LoadLibraryW: Loading %S\n", name);
+
     if (name == NULL) {
         SetLastError(ERROR_INVALID_PARAMETER);
 

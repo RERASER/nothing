@@ -134,20 +134,25 @@ end:
     return hr;
 }
 
-static void setupapi_hook_init(void)
+static void setupapi_hook_init()
 {
     if (setupapi_initted) {
         return;
     }
 
-    hook_table_apply(
-            NULL,
-            "setupapi.dll",
-            setupapi_syms,
-            _countof(setupapi_syms));
+    setupapi_hook_insert_hooks(NULL);
 
     InitializeCriticalSection(&setupapi_lock);
     setupapi_initted = true;
+}
+
+void setupapi_hook_insert_hooks(HMODULE target)
+{
+    hook_table_apply(
+            target,
+            "setupapi.dll",
+            setupapi_syms,
+            _countof(setupapi_syms));
 }
 
 static HDEVINFO WINAPI my_SetupDiGetClassDevsW(
@@ -191,6 +196,7 @@ static BOOL WINAPI my_SetupDiEnumDeviceInterfaces(
         DWORD MemberIndex,
         SP_DEVICE_INTERFACE_DATA *DeviceInterfaceData)
 {
+    dprintf("my_SetupDiEnumDeviceInterfaces hit!\n");
     const struct setupapi_class *class_;
     size_t i;
 

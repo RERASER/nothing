@@ -10,6 +10,7 @@
 
 #include "hooklib/dll.h"
 #include "hooklib/path.h"
+#include "hooklib/setupapi.h"
 
 #include "util/dprintf.h"
 
@@ -21,7 +22,7 @@ static HMODULE (WINAPI *next_LoadLibraryW)(const wchar_t *name);
 static FARPROC WINAPI my_GetProcAddress(HMODULE hModule, const char *name);
 static FARPROC (WINAPI *next_GetProcAddress)(HMODULE hModule, const char *name);
 
-static const struct hook_symbol elisabeth_hooks[] = {
+static const struct hook_symbol win32_hooks[] = {
     {
         .name = "LoadLibraryW",
         .patch = my_LoadLibraryW,
@@ -39,14 +40,7 @@ static const wchar_t *target_modules[] = {
     L"ftd2XX.dll",
 };
 
-static const char *target_functions[] = {
-    "FT_Read",
-    "FT_Write",
-    "USBIntLED_Init",
-};
-
 static const size_t target_modules_len = _countof(target_modules);
-static const size_t target_functions_len = _countof(target_functions);
 
 void elisabeth_hook_init()
 {
@@ -58,8 +52,8 @@ static void dll_hook_insert_hooks(HMODULE target)
     hook_table_apply(
             target,
             "kernel32.dll",
-            elisabeth_hooks,
-            _countof(elisabeth_hooks));
+            win32_hooks,
+            _countof(win32_hooks));
 }
 
 static HMODULE WINAPI my_LoadLibraryW(const wchar_t *name)
@@ -70,6 +64,8 @@ static HMODULE WINAPI my_LoadLibraryW(const wchar_t *name)
     HMODULE result;
     size_t name_len;
     size_t target_module_len;
+
+    dprintf("Elisabeth: Trying to load %S\n", name);
 
     if (name == NULL) {
         SetLastError(ERROR_INVALID_PARAMETER);
@@ -107,7 +103,7 @@ static HMODULE WINAPI my_LoadLibraryW(const wchar_t *name)
             dprintf("Elisabeth: Loaded %S\n", target_module);
 
             dll_hook_insert_hooks(result);
-            path_hook_insert_hooks(result);
+            setupapi_hook_insert_hooks(result);
         }
     }
 
@@ -116,19 +112,13 @@ static HMODULE WINAPI my_LoadLibraryW(const wchar_t *name)
 
 FARPROC WINAPI my_GetProcAddress(HMODULE hModule, const char *name)
 {
-    uintptr_t ordinal;
+    uintptr_t ordinal = (uintptr_t) name;
 
-    FARPROC result = next_GetProcAddress(hModule, name);
+    FARPROC result = next_GetProcAddress(hModule, name);    
 
-
-    for (size_t i = 0; i < target_functions_len; i++) {
-        ordinal = (uintptr_t) name;
-
-        if (ordinal > 0xFFFF) {
-            /* Import by name */
-            if (strcmp(target_functions[i], name) == 0)
-                dprintf("Elisabeth: GetProcAddress %s is %p\n", name, result);
-        }
+    if (ordinal > 0xFFFF) {
+        /* Import by name */
+        dprintf("Elisabeth: GetProcAddress %s is %p\n", name, result);
     }
 
     return result;
