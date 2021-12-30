@@ -65,3 +65,5 @@ void mercury_io_get_opbtns(uint8_t *opbtn);
    Minimum API version: 0x0100 */
 
 void mercury_io_get_gamebtns(uint16_t *player1, uint16_t *player2);
+
+HRESULT mercury_io_elisabeth_init(void);

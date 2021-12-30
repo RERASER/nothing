@@ -6,9 +6,11 @@
 #include <stdlib.h>
 
 #include "mercuryhook/elisabeth.h"
+#include "mercuryhook/mercury-dll.h"
 
 #include "hook/table.h"
 
+#include "hooklib/uart.h"
 #include "hooklib/dll.h"
 #include "hooklib/path.h"
 #include "hooklib/setupapi.h"
@@ -22,6 +24,13 @@ static HMODULE WINAPI my_LoadLibraryW(const wchar_t *name);
 static HMODULE (WINAPI *next_LoadLibraryW)(const wchar_t *name);
 static FARPROC WINAPI my_GetProcAddress(HMODULE hModule, const char *name);
 static FARPROC (WINAPI *next_GetProcAddress)(HMODULE hModule, const char *name);
+static HRESULT elisabeth_handle_irp(struct irp *irp);
+static HRESULT elisabeth_handle_irp_locked(struct irp *irp);
+
+static CRITICAL_SECTION elisabeth_lock;
+static struct uart elisabeth_uart;
+static uint8_t elisabeth_written_bytes[520];
+static uint8_t elisabeth_readable_bytes[520];
 
 static const struct hook_symbol win32_hooks[] = {
     {
@@ -42,10 +51,84 @@ static const wchar_t *target_modules[] = {
 
 static const size_t target_modules_len = _countof(target_modules);
 
-void elisabeth_hook_init()
+HRESULT elisabeth_hook_init()
 {
     dll_hook_insert_hooks(NULL);
-    setupapi_add_phantom_dev(&elisabeth_guid, L"USB\\VID_0403&PID_6001");
+    setupapi_add_phantom_dev(&elisabeth_guid, L"$ftdi");
+
+    InitializeCriticalSection(&elisabeth_lock);
+
+    uart_init(&elisabeth_uart, 1);
+    elisabeth_uart.written.bytes = elisabeth_written_bytes;
+    elisabeth_uart.written.nbytes = sizeof(elisabeth_written_bytes);
+    elisabeth_uart.readable.bytes = elisabeth_readable_bytes;
+    elisabeth_uart.readable.nbytes = sizeof(elisabeth_readable_bytes);
+
+    return iohook_push_handler(elisabeth_handle_irp);
+}
+
+static HRESULT elisabeth_handle_irp(struct irp *irp)
+{
+    HRESULT hr;
+
+    assert(irp != NULL);
+
+    if (!uart_match_irp(&elisabeth_uart, irp)) {
+        return iohook_invoke_next(irp);
+    }
+
+    EnterCriticalSection(&elisabeth_lock);
+    hr = elisabeth_handle_irp_locked(irp);
+    LeaveCriticalSection(&elisabeth_lock);
+
+    return hr;
+}
+
+static HRESULT elisabeth_handle_irp_locked(struct irp *irp)
+{
+    //union elisabeth_req_any req;
+    struct iobuf req_iobuf;
+    HRESULT hr;
+
+    if (irp->op == IRP_OP_OPEN) {
+        dprintf("Elisabeth: Starting backend\n");
+        hr = mercury_dll.elisabeth_init();
+
+        if (FAILED(hr)) {
+            dprintf("Elisabeth: Backend error: %x\n", (int) hr);
+
+            return hr;
+        }
+    }
+
+    hr = uart_handle_irp(&elisabeth_uart, irp);
+
+    if (FAILED(hr) || irp->op != IRP_OP_WRITE) {
+        return hr;
+    }
+
+    for (;;) {
+
+        //req_iobuf.bytes = req.bytes;
+        //req_iobuf.nbytes = sizeof(req.bytes);
+        //req_iobuf.pos = 0;
+
+        /*hr = elisabeth_frame_decode(&req_iobuf, &elisabeth_uart.written);
+
+        if (hr != S_OK) {
+            if (FAILED(hr)) {
+                dprintf("Elisabeth: Deframe error: %x\n", (int) hr);
+            }
+
+            return hr;
+        }
+
+        hr = elisabeth_req_dispatch(&req);
+
+        if (FAILED(hr)) {
+            dprintf("Elisabeth: Processing error: %x\n", (int) hr);
+        }*/
+    }
 }
 
 static void dll_hook_insert_hooks(HMODULE target)
