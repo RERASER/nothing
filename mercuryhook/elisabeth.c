@@ -1,3 +1,4 @@
+#include <initguid.h>
 #include <windows.h>
 
 #include <assert.h>
@@ -36,8 +37,7 @@ static const struct hook_symbol win32_hooks[] = {
 };
 
 static const wchar_t *target_modules[] = {
-    L"USBIntLED.DLL",
-    L"ftd2XX.dll",
+    L"USBIntLED.DLL"
 };
 
 static const size_t target_modules_len = _countof(target_modules);
@@ -45,6 +45,7 @@ static const size_t target_modules_len = _countof(target_modules);
 void elisabeth_hook_init()
 {
     dll_hook_insert_hooks(NULL);
+    setupapi_add_phantom_dev(&elisabeth_guid, L"USB\\VID_0403&PID_6001");
 }
 
 static void dll_hook_insert_hooks(HMODULE target)
@@ -64,8 +65,6 @@ static HMODULE WINAPI my_LoadLibraryW(const wchar_t *name)
     HMODULE result;
     size_t name_len;
     size_t target_module_len;
-
-    dprintf("Elisabeth: Trying to load %S\n", name);
 
     if (name == NULL) {
         SetLastError(ERROR_INVALID_PARAMETER);
@@ -114,11 +113,11 @@ FARPROC WINAPI my_GetProcAddress(HMODULE hModule, const char *name)
 {
     uintptr_t ordinal = (uintptr_t) name;
 
-    FARPROC result = next_GetProcAddress(hModule, name);    
+    FARPROC result = next_GetProcAddress(hModule, name);
 
     if (ordinal > 0xFFFF) {
         /* Import by name */
-        dprintf("Elisabeth: GetProcAddress %s is %p\n", name, result);
+        //dprintf("Elisabeth: GetProcAddress %s is %p\n", name, result);
     }
 
     return result;

@@ -196,7 +196,6 @@ static BOOL WINAPI my_SetupDiEnumDeviceInterfaces(
         DWORD MemberIndex,
         SP_DEVICE_INTERFACE_DATA *DeviceInterfaceData)
 {
-    dprintf("my_SetupDiEnumDeviceInterfaces hit!\n");
     const struct setupapi_class *class_;
     size_t i;
 

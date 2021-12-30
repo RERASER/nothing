@@ -7,8 +7,6 @@
 #include "mercuryio/config.h"
 
 static uint8_t mercury_opbtn;
-static uint16_t mercury_player1_btn;
-static uint16_t mercury_player2_btn;
 static struct mercury_io_config mercury_io_cfg;
 
 uint16_t mercury_io_get_api_version(void)
@@ -47,5 +45,5 @@ void mercury_io_get_opbtns(uint8_t *opbtn)
 
 void mercury_io_get_gamebtns(uint16_t *player1, uint16_t *player2)
 {
-    
+
 }
