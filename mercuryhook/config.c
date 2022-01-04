@@ -27,6 +27,20 @@ void mercury_dll_config_load(
             filename);
 }
 
+void touch_config_load(
+        struct touch_config *cfg,
+        const wchar_t *filename)
+{
+    assert(cfg != NULL);
+    assert(filename != NULL);
+
+    GetPrivateProfileIntW(
+            L"touch",
+            L"enable",
+            1,
+            filename);
+}
+
 void mercury_hook_config_load(
         struct mercury_hook_config *cfg,
         const wchar_t *filename)
@@ -40,4 +54,5 @@ void mercury_hook_config_load(
     io4_config_load(&cfg->io4, filename);
     gfx_config_load(&cfg->gfx, filename);
     mercury_dll_config_load(&cfg->dll, filename);
+    touch_config_load(&cfg->touch, filename);
 }

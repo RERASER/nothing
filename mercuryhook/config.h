@@ -8,6 +8,7 @@
 #include "hooklib/gfx.h"
 
 #include "mercuryhook/mercury-dll.h"
+#include "mercuryhook/touch.h"
 
 #include "platform/config.h"
 
@@ -18,6 +19,7 @@ struct mercury_hook_config {
     struct io4_config io4;
     struct gfx_config gfx;
     struct mercury_dll_config dll;
+    struct touch_config touch;
 };
 
 void mercury_dll_config_load(

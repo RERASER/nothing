@@ -14,9 +14,6 @@ void mercury_io_config_load(
         struct mercury_io_config *cfg,
         const wchar_t *filename)
 {
-    wchar_t key[16];
-    int i;
-
     assert(cfg != NULL);
     assert(filename != NULL);
 

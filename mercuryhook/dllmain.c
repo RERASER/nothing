@@ -13,6 +13,7 @@
 #include "mercuryhook/io4.h"
 #include "mercuryhook/mercury-dll.h"
 #include "mercuryhook/elisabeth.h"
+#include "mercuryhook/touch.h"
 
 #include "platform/platform.h"
 
@@ -78,6 +79,8 @@ static DWORD CALLBACK mercury_pre_startup(void)
 
     /* Start elisabeth Hooks for the LED and IO Board DLLs */
     elisabeth_hook_init();
+
+    touch_hook_init(&mercury_hook_cfg.touch);
 
     /* Initialize debug helpers */
 

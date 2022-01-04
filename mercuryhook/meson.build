@@ -26,6 +26,8 @@ shared_library(
         'mercury-dll.c',
         'mercury-dll.h',
         'elisabeth.h',
-        'elisabeth.c'
+        'elisabeth.c',
+        'touch.h',
+        'touch.c'
     ],
 )
