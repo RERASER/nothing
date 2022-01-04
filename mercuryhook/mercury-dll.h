@@ -10,7 +10,7 @@ struct mercury_dll {
     HRESULT (*poll)(void);
     void (*get_opbtns)(uint8_t *opbtn);
     void (*get_gamebtns)(uint16_t *player1, uint16_t *player2);
-    HRESULT (*elisabeth_init)(void);
+    HRESULT (*touch_init)(void);
 };
 
 struct mercury_dll_config {

@@ -22,8 +22,8 @@ const struct dll_bind_sym mercury_dll_syms[] = {
         .sym = "mercury_io_get_gamebtns",
         .off = offsetof(struct mercury_dll, get_gamebtns),
     }, {
-        .sym = "mercury_io_elisabeth_init",
-        .off = offsetof(struct mercury_dll, elisabeth_init),
+        .sym = "mercury_io_touch_init",
+        .off = offsetof(struct mercury_dll, touch_init),
     }
 };
 

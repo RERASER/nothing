@@ -15,6 +15,6 @@ EXPORTS
     mercury_io_get_api_version
     mercury_io_get_gamebtns
     mercury_io_get_opbtns
-    mercury_io_elisabeth_init
+    mercury_io_touch_init
     mercury_io_init
     mercury_io_poll

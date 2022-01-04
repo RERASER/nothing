@@ -66,4 +66,4 @@ void mercury_io_get_opbtns(uint8_t *opbtn);
 
 void mercury_io_get_gamebtns(uint16_t *player1, uint16_t *player2);
 
-HRESULT mercury_io_elisabeth_init(void);
+HRESULT mercury_io_touch_init(void);

@@ -1,11 +1,3 @@
 #pragma once
-#include <initguid.h>
-
-DEFINE_GUID(
-    elisabeth_guid,
-    0x219D0508,
-    0x57A8,
-    0x4FF5,
-    0x97, 0x0A1, 0x0BD, 0x86, 0x58, 0x7C, 0x6C, 0x7E);
 
 HRESULT elisabeth_hook_init();
