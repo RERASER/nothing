@@ -16,16 +16,21 @@
 #include "hook/iohook.h"
 
 #include "hooklib/uart.h"
+#include "hooklib/fdshark.h"
 
 #include "util/dprintf.h"
 #include "util/dump.h"
 
 static HRESULT touch0_handle_irp(struct irp *irp);
 static HRESULT touch0_handle_irp_locked(struct irp *irp);
+static HRESULT touch1_handle_irp(struct irp *irp);
+static HRESULT touch1_handle_irp_locked(struct irp *irp);
 
-static HRESULT touch_req_dispatch(const union slider_req_any *req);
+static HRESULT touch_req_dispatch(const struct touch_req *req);
 
-static void touch_res_auto_scan(const uint8_t *state);
+static HRESULT touch_frame_decode(struct touch_req *dest, const struct iobuf *iobuf, int side);
+
+static HRESULT touch_handle_get_rev_date(const struct touch_req *req);
 
 static CRITICAL_SECTION touch0_lock;
 static struct uart touch0_uart;
@@ -63,7 +68,9 @@ HRESULT touch_hook_init(const struct touch_config *cfg)
     touch1_uart.readable.bytes = touch1_readable_bytes;
     touch1_uart.readable.nbytes = sizeof(touch1_readable_bytes);
 
-    return iohook_push_handler(touch0_handle_irp);
+    iohook_push_handler(touch0_handle_irp);
+    iohook_push_handler(touch1_handle_irp);
+    return S_OK;
 }
 
 static HRESULT touch0_handle_irp(struct irp *irp)
@@ -85,12 +92,11 @@ static HRESULT touch0_handle_irp(struct irp *irp)
 
 static HRESULT touch0_handle_irp_locked(struct irp *irp)
 {
-    union slider_req_any req;
-    struct iobuf req_iobuf;
+    struct touch_req req;
     HRESULT hr;
 
     if (irp->op == IRP_OP_OPEN) {
-        dprintf("Wacca touch: Starting backend\n");
+        dprintf("Wacca touch0: Starting backend\n");
         hr = mercury_dll.touch_init();
 
         if (FAILED(hr)) {
@@ -107,16 +113,11 @@ static HRESULT touch0_handle_irp_locked(struct irp *irp)
     }
 
     for (;;) {
-#if 0
-        dprintf("TX Buffer:\n");
+#if 1
+        dprintf("TX0 Buffer:\n");
         dump_iobuf(&touch0_uart.written);
 #endif
-
-        req_iobuf.bytes = req.bytes;
-        req_iobuf.nbytes = sizeof(req.bytes);
-        req_iobuf.pos = 0;
-
-        hr = slider_frame_decode(&req_iobuf, &touch0_uart.written);
+        hr = touch_frame_decode(&req, &touch0_uart.written, 0);
 
         if (hr != S_OK) {
             if (FAILED(hr)) {
@@ -126,10 +127,68 @@ static HRESULT touch0_handle_irp_locked(struct irp *irp)
             return hr;
         }
 
-#if 0
-        dprintf("Deframe Buffer:\n");
-        dump_iobuf(&req_iobuf);
+        hr = touch_req_dispatch(&req);
+
+        if (FAILED(hr)) {
+            dprintf("Wacca touch: Processing error: %x\n", (int) hr);
+        }
+    }
+}
+
+static HRESULT touch1_handle_irp(struct irp *irp)
+{
+    HRESULT hr;
+
+    assert(irp != NULL);
+
+    if (!uart_match_irp(&touch1_uart, irp)) {
+        return iohook_invoke_next(irp);
+    }
+
+    EnterCriticalSection(&touch1_lock);
+    hr = touch1_handle_irp_locked(irp);
+    LeaveCriticalSection(&touch1_lock);
+
+    return hr;
+}
+
+static HRESULT touch1_handle_irp_locked(struct irp *irp)
+{
+    struct touch_req req;
+    HRESULT hr;
+
+    if (irp->op == IRP_OP_OPEN) {
+        dprintf("Wacca touch1: Starting backend\n");
+        hr = mercury_dll.touch_init();
+
+        if (FAILED(hr)) {
+            dprintf("Wacca touch: Backend error: %x\n", (int) hr);
+
+            return hr;
+        }
+    }
+
+    hr = uart_handle_irp(&touch1_uart, irp);
+
+    if (FAILED(hr) || irp->op != IRP_OP_WRITE) {
+        return hr;
+    }
+
+    for (;;) {
+#if 1
+        dprintf("TX1 Buffer:\n");
+        dump_iobuf(&touch1_uart.written);
 #endif
+
+        hr = touch_frame_decode(&req, &touch0_uart.written, 1);
+
+        if (hr != S_OK) {
+            if (FAILED(hr)) {
+                dprintf("Wacca touch: Deframe error: %x\n", (int) hr);
+            }
+
+            return hr;
+        }
 
         hr = touch_req_dispatch(&req);
 
@@ -139,26 +198,55 @@ static HRESULT touch0_handle_irp_locked(struct irp *irp)
     }
 }
 
-static HRESULT touch_req_dispatch(const union slider_req_any *req)
+static HRESULT touch_req_dispatch(const struct touch_req *req)
 {
-    switch (req->hdr.cmd) {
+    switch (req->cmd) {
+    case CMD_GET_REV_DATE:
+        return touch_handle_get_rev_date(req);
     default:
-        dprintf("Unhandled command %02x\n", req->hdr.cmd);
+        dprintf("Wacca touch: Unhandled command %02x\n", req->cmd);
 
         return S_OK;
     }
 }
 
-static void slider_res_auto_scan(const uint8_t *state)
+static HRESULT touch_handle_get_rev_date(const struct touch_req *req)
 {
-    struct slider_resp_auto_scan resp;
+    dprintf("Wacca Touch%d: Get board rev date\n", req->side);
+    if (req->side) {
+        touch0_uart.readable.bytes[0] = 0xa0;
+        touch0_uart.readable.bytes[1] = 0x31;
+        touch0_uart.readable.bytes[2] = 0x39;
+        touch0_uart.readable.bytes[3] = 0x30;
+        touch0_uart.readable.bytes[4] = 0x35;
+        touch0_uart.readable.bytes[5] = 0x32;
+        touch0_uart.readable.bytes[6] = 0x33;
+        touch0_uart.readable.bytes[7] = 0x2c;
+    }
+    else {
+        touch1_uart.readable.bytes[0] = 0xa0;
+        touch1_uart.readable.bytes[1] = 0x31;
+        touch1_uart.readable.bytes[2] = 0x39;
+        touch1_uart.readable.bytes[3] = 0x30;
+        touch1_uart.readable.bytes[4] = 0x35;
+        touch1_uart.readable.bytes[5] = 0x32;
+        touch1_uart.readable.bytes[6] = 0x33;
+        touch1_uart.readable.bytes[7] = 0x2c;
+    }
+    return S_OK;
+}
 
-    resp.hdr.sync = SLIDER_FRAME_SYNC;
-    resp.hdr.cmd = SLIDER_CMD_AUTO_SCAN;
-    resp.hdr.nbytes = sizeof(resp.pressure);
-    memcpy(resp.pressure, state, sizeof(resp.pressure));
+static HRESULT touch_frame_decode(struct touch_req *dest, const struct iobuf *iobuf, int side)
+{
+    dest->side = side;
+    dest->cmd = iobuf->bytes[0];
+    dest->data_length = _countof(iobuf->bytes) - 1;
 
-    EnterCriticalSection(&touch0_lock);
-    slider_frame_encode(&touch0_uart.readable, &resp, sizeof(resp));
-    LeaveCriticalSection(&touch0_lock);
+    if (dest->data_length > 0) {
+        for (int i = 1; i < dest->data_length; i++) {
+            dest->data[i-1] = iobuf->bytes[i];
+        }
+    }
+
+    return S_OK;
 }
