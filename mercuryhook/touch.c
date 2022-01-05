@@ -21,16 +21,16 @@
 #include "util/dprintf.h"
 #include "util/dump.h"
 
-static HRESULT touch0_handle_irp(struct irp *irp);
+static HRESULT touch_handle_irp(struct irp *irp);
 static HRESULT touch0_handle_irp_locked(struct irp *irp);
-static HRESULT touch1_handle_irp(struct irp *irp);
 static HRESULT touch1_handle_irp_locked(struct irp *irp);
 
 static HRESULT touch_req_dispatch(const struct touch_req *req);
 
-static HRESULT touch_frame_decode(struct touch_req *dest, const struct iobuf *iobuf, int side);
+static HRESULT touch_frame_decode(struct touch_req *dest, struct iobuf *iobuf, int side);
 
 static HRESULT touch_handle_get_rev_date(const struct touch_req *req);
+static HRESULT touch_handle_startup(const struct touch_req *req);
 
 static CRITICAL_SECTION touch0_lock;
 static struct uart touch0_uart;
@@ -68,24 +68,28 @@ HRESULT touch_hook_init(const struct touch_config *cfg)
     touch1_uart.readable.bytes = touch1_readable_bytes;
     touch1_uart.readable.nbytes = sizeof(touch1_readable_bytes);
 
-    iohook_push_handler(touch0_handle_irp);
-    iohook_push_handler(touch1_handle_irp);
-    return S_OK;
+    return iohook_push_handler(touch_handle_irp);
 }
 
-static HRESULT touch0_handle_irp(struct irp *irp)
+static HRESULT touch_handle_irp(struct irp *irp)
 {
     HRESULT hr;
 
     assert(irp != NULL);
 
-    if (!uart_match_irp(&touch0_uart, irp)) {
+    if (uart_match_irp(&touch0_uart, irp)) {
+        EnterCriticalSection(&touch0_lock);
+        hr = touch0_handle_irp_locked(irp);
+        LeaveCriticalSection(&touch0_lock);
+    }
+    else if (uart_match_irp(&touch1_uart, irp)) {        
+        EnterCriticalSection(&touch1_lock);
+        hr = touch1_handle_irp_locked(irp);
+        LeaveCriticalSection(&touch1_lock);
+    }
+    else {
         return iohook_invoke_next(irp);
     }
-
-    EnterCriticalSection(&touch0_lock);
-    hr = touch0_handle_irp_locked(irp);
-    LeaveCriticalSection(&touch0_lock);
 
     return hr;
 }
@@ -132,24 +136,9 @@ static HRESULT touch0_handle_irp_locked(struct irp *irp)
         if (FAILED(hr)) {
             dprintf("Wacca touch: Processing error: %x\n", (int) hr);
         }
+
+        return hr;
     }
-}
-
-static HRESULT touch1_handle_irp(struct irp *irp)
-{
-    HRESULT hr;
-
-    assert(irp != NULL);
-
-    if (!uart_match_irp(&touch1_uart, irp)) {
-        return iohook_invoke_next(irp);
-    }
-
-    EnterCriticalSection(&touch1_lock);
-    hr = touch1_handle_irp_locked(irp);
-    LeaveCriticalSection(&touch1_lock);
-
-    return hr;
 }
 
 static HRESULT touch1_handle_irp_locked(struct irp *irp)
@@ -180,7 +169,7 @@ static HRESULT touch1_handle_irp_locked(struct irp *irp)
         dump_iobuf(&touch1_uart.written);
 #endif
 
-        hr = touch_frame_decode(&req, &touch0_uart.written, 1);
+        hr = touch_frame_decode(&req, &touch1_uart.written, 1);
 
         if (hr != S_OK) {
             if (FAILED(hr)) {
@@ -195,6 +184,8 @@ static HRESULT touch1_handle_irp_locked(struct irp *irp)
         if (FAILED(hr)) {
             dprintf("Wacca touch: Processing error: %x\n", (int) hr);
         }
+
+        return hr;
     }
 }
 
@@ -203,6 +194,8 @@ static HRESULT touch_req_dispatch(const struct touch_req *req)
     switch (req->cmd) {
     case CMD_GET_REV_DATE:
         return touch_handle_get_rev_date(req);
+    case CMD_STARTUP:
+        return touch_handle_startup(req);
     default:
         dprintf("Wacca touch: Unhandled command %02x\n", req->cmd);
 
@@ -213,40 +206,40 @@ static HRESULT touch_req_dispatch(const struct touch_req *req)
 static HRESULT touch_handle_get_rev_date(const struct touch_req *req)
 {
     dprintf("Wacca Touch%d: Get board rev date\n", req->side);
-    if (req->side) {
-        touch0_uart.readable.bytes[0] = 0xa0;
-        touch0_uart.readable.bytes[1] = 0x31;
-        touch0_uart.readable.bytes[2] = 0x39;
-        touch0_uart.readable.bytes[3] = 0x30;
-        touch0_uart.readable.bytes[4] = 0x35;
-        touch0_uart.readable.bytes[5] = 0x32;
-        touch0_uart.readable.bytes[6] = 0x33;
-        touch0_uart.readable.bytes[7] = 0x2c;
+    if (req->side == 0) {
+        // TODO: a0 31 39 30 35 32 33 2c
     }
     else {
-        touch1_uart.readable.bytes[0] = 0xa0;
-        touch1_uart.readable.bytes[1] = 0x31;
-        touch1_uart.readable.bytes[2] = 0x39;
-        touch1_uart.readable.bytes[3] = 0x30;
-        touch1_uart.readable.bytes[4] = 0x35;
-        touch1_uart.readable.bytes[5] = 0x32;
-        touch1_uart.readable.bytes[6] = 0x33;
-        touch1_uart.readable.bytes[7] = 0x2c;
+        // TODO: see above
     }
     return S_OK;
 }
 
-static HRESULT touch_frame_decode(struct touch_req *dest, const struct iobuf *iobuf, int side)
+static HRESULT touch_handle_startup(const struct touch_req *req)
+{
+    dprintf("Wacca Touch%d: Startup\n", req->side);
+    if (req->side == 0) {        
+        // TODO: 20 20 20 20 30 20 20 20 20 30 20 20 20 20 31 20 20 20 20 32 20 20 20 20 33 20 20 20 20 34 20 20 20 20 35 20 20 20 31 35 20 20 20 31 35 20 20 20 31 35 20 20 20 31 35 20 20 20 31 35 20 20 20 31 35 20 20 20 31 31 20 20 20 31 31 20 20 20 31 31 0d
+    }
+    else {
+        // TODO: see above
+    }
+    return S_OK;
+}
+
+static HRESULT touch_frame_decode(struct touch_req *dest, struct iobuf *iobuf, int side)
 {
     dest->side = side;
     dest->cmd = iobuf->bytes[0];
-    dest->data_length = _countof(iobuf->bytes) - 1;
+    iobuf->pos--;
+    dest->data_length = iobuf->pos;
 
     if (dest->data_length > 0) {
         for (int i = 1; i < dest->data_length; i++) {
             dest->data[i-1] = iobuf->bytes[i];
         }
     }
+    iobuf->pos -= dest->data_length;
 
     return S_OK;
 }

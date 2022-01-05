@@ -1,4 +1,11 @@
-project('segatools', 'c', version: '0.1.0')
+project(
+    'segatools',
+    'c',
+    version: '0.1.0',
+    default_options: [
+        'werror=true',
+    ],
+)
 
 add_project_arguments(
     '-DCOBJMACROS',

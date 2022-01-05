@@ -35,6 +35,7 @@ static const struct hook_symbol win32_hooks[] = {
 HRESULT elisabeth_hook_init()
 {
     dll_hook_insert_hooks(NULL);
+    return S_OK;
 }
 
 static void dll_hook_insert_hooks(HMODULE target)
@@ -55,7 +56,7 @@ FARPROC WINAPI my_GetProcAddress(HMODULE hModule, const char *name)
     if (ordinal > 0xFFFF) {
         /* Import by name */
         if (strcmp(name, "USBIntLED_Init") == 0) {
-            result = my_USBIntLED_Init;
+            result = (FARPROC) my_USBIntLED_Init;
         }
     }
 
