@@ -37,8 +37,12 @@ static HRESULT touch_handle_get_unit_board_ver(const struct touch_req *req);
 static HRESULT touch_handle_mystery1(const struct touch_req *req);
 static HRESULT touch_handle_mystery2(const struct touch_req *req);
 static HRESULT touch_handle_start_auto_scan(const struct touch_req *req);
+static void touch_res_auto_scan(const uint8_t *state);
 
-uint8_t input_frame_count = 0x7b;
+uint8_t input_frame_count_0 = 0x7b;
+uint8_t input_frame_count_1 = 0x7b;
+bool touch0_auto = false;
+bool touch1_auto = false;
 
 static CRITICAL_SECTION touch0_lock;
 static struct uart touch0_uart;
@@ -235,6 +239,8 @@ static HRESULT touch_handle_get_sync_board_ver(const struct touch_req *req)
     // TODO: Why does strcpy_s here give a runtime warning and not work????
     //strcpy_s(resp.version, sizeof(resp.version), "190523");
     memcpy(resp.version, sync_board_ver, sizeof(sync_board_ver));
+    resp.checksum = 0;
+    resp.checksum = calc_checksum(&resp, sizeof(resp));
 
 
     if (req->side == 0) {
@@ -290,6 +296,8 @@ static HRESULT touch_handle_startup(const struct touch_req *req)
     }
 
     memcpy(resp.data, rev, 80 * sizeof(uint8_t));
+    resp.checksum = 0;
+    resp.checksum = calc_checksum(&resp, sizeof(resp));
 
     if (req->side == 0) {
         hr = touch_frame_encode(&touch0_uart.readable, &resp, sizeof(resp));
@@ -313,6 +321,8 @@ static HRESULT touch_handle_get_unit_board_ver(const struct touch_req *req)
 
     resp.cmd = 0xa8;
     memcpy(resp.version, unit_board_ver, sizeof(unit_board_ver));
+    resp.checksum = 0;
+    resp.checksum = calc_checksum(&resp, sizeof(resp));
 
     if (req->side == 0) {
         hr = touch_frame_encode(&touch0_uart.readable, &resp, sizeof(resp));
@@ -333,6 +343,8 @@ static HRESULT touch_handle_mystery1(const struct touch_req *req)
 
     resp.cmd = 0xa2;
     resp.data = 0x3f;
+    resp.checksum = 0;
+    resp.checksum = calc_checksum(&resp, sizeof(resp));
 
     if (req->side == 0) {
         hr = touch_frame_encode(&touch0_uart.readable, &resp, sizeof(resp));
@@ -352,6 +364,8 @@ static HRESULT touch_handle_mystery2(const struct touch_req *req)
 
     resp.cmd = 0x94;
     resp.data = 0;
+    resp.checksum = 0;
+    resp.checksum = calc_checksum(&resp, sizeof(resp));
 
     if (req->side == 0) {
         hr = touch_frame_encode(&touch0_uart.readable, &resp, sizeof(resp));
@@ -376,18 +390,60 @@ static HRESULT touch_handle_start_auto_scan(const struct touch_req *req)
     resp.checksum = 0x49;
 
     resp.frame.cmd= 0x81;
-    resp.frame.count = input_frame_count++;
     memcpy(resp.frame.data1, data1, sizeof(data1));
     memcpy(resp.frame.data2, data2, sizeof(data2));
+    resp.frame.checksum = 0;
     resp.frame.checksum = calc_checksum(&resp.frame, sizeof(resp.frame));
 
     if (req->side == 0) {
+        resp.frame.count = input_frame_count_0++;
         hr = touch_frame_encode(&touch0_uart.readable, &resp, sizeof(resp));
+        touch0_auto = true;
     }
     else {
+        resp.frame.count = input_frame_count_1++;
         hr = touch_frame_encode(&touch1_uart.readable, &resp, sizeof(resp));
+        touch1_auto = true;
     }
+
+    //mercury_dll.touch_start(touch_res_auto_scan);
     return hr;
+}
+
+static void touch_res_auto_scan(const uint8_t *state)
+{
+    struct touch_input_frame frame0;
+    //struct touch_input_frame frame1;
+    uint8_t data1[24] = { 0 };
+    uint8_t data2[9] = { 0x0d, 0x03, 0x02, 0x01, 0x00, 0x00, 0x00, 0x01, 0x00 };
+
+    frame0.cmd = 0x81;
+    if (input_frame_count_0 == 0x7f) {
+        frame0.count = 0x7f;
+        input_frame_count_0 = 0;
+    }
+    else {
+        frame0.count = input_frame_count_0++;
+    }
+    // for now return no data
+    memcpy(frame0.data1, data1, sizeof(data1));
+    memcpy(frame0.data2, data2, sizeof(data2));
+    frame0.checksum = 0;
+    frame0.checksum = calc_checksum(&frame0, sizeof(frame0));
+
+    if (touch0_auto) {
+        //dprintf("Wacca touch: Touch0 auto frame #%2hx sent\n", frame0.count);
+        EnterCriticalSection(&touch0_lock);
+        touch_frame_encode(&touch0_uart.readable, &frame0, sizeof(frame0));
+        LeaveCriticalSection(&touch0_lock);
+    }
+
+    if (touch1_auto) {
+        //dprintf("Wacca touch: Touch1 auto frame #%2hx sent\n", frame0.count);
+        EnterCriticalSection(&touch1_lock);
+        touch_frame_encode(&touch1_uart.readable, &frame0, sizeof(frame0));
+        LeaveCriticalSection(&touch1_lock);
+    }
 }
 
 /* Decodes the response into a struct that's easier to work with. */
@@ -412,16 +468,13 @@ static HRESULT touch_frame_decode(struct touch_req *dest, struct iobuf *iobuf, i
 static HRESULT touch_frame_encode(struct iobuf *dest, const void *ptr, size_t nbytes)
 {
     const uint8_t *src;
-    uint8_t checksum = 0;
 
     src = ptr;
 
     for (size_t i = 0; i < nbytes; i++) {
         dest->bytes[dest->pos++] = src[i];
-        checksum = checksum^(src[i]);
     }
 
-    dest->bytes[dest->pos++] = checksum&0x7f;
     return S_OK;
 }
 
@@ -438,8 +491,9 @@ static uint8_t calc_checksum(const void *ptr, size_t nbytes)
     src = ptr;
 
     for (size_t i = 0; i < nbytes; i++) {
+        //dprintf("Wacca touch: Calculating %2hx\n", src[i]);
         checksum = checksum^(src[i]);
     }
-
+    //dprintf("Wacca touch: Checksum is %2hx\n", checksum&0x7f);
     return checksum&0x7f;
 }

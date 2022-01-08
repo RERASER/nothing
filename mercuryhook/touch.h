@@ -26,9 +26,6 @@ struct touch_req {
     uint8_t data_length; // Size of the data including command byte
 };
 
-// The checksum is only calculated when we're about to send it so
-// it's not part of any of these structs. Just note that the last
-// byte of every response is a checksum
 struct touch_input_frame {
     uint8_t cmd;
     uint8_t data1[24];
@@ -40,25 +37,30 @@ struct touch_input_frame {
 struct touch_resp_get_sync_board_ver {
     uint8_t cmd;
     char version[6];
+    uint8_t checksum;
 };
 
 struct touch_resp_startup {
     char data[80];
+    uint8_t checksum;
 };
 
 struct touch_resp_get_unit_board_ver {
     uint8_t cmd;
     uint8_t version[43];
+    uint8_t checksum;
 };
 
 struct touch_resp_mystery1 {
     uint8_t cmd;
     uint8_t data;
+    uint8_t checksum;
 };
 
 struct touch_resp_mystery2 {
     uint8_t cmd;
     uint8_t data;
+    uint8_t checksum;
 };
 
 struct touch_resp_start_auto {

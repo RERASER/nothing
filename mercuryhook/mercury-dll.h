@@ -11,7 +11,7 @@ struct mercury_dll {
     void (*get_opbtns)(uint8_t *opbtn);
     void (*get_gamebtns)(uint8_t *gamebtn);
     HRESULT (*touch_init)(void);
-    HRESULT (*touch_start)(void);
+    void (*touch_start)(mercury_io_touch_callback_t callback);
 };
 
 struct mercury_dll_config {
