@@ -406,7 +406,7 @@ static HRESULT touch_handle_start_auto_scan(const struct touch_req *req)
         touch1_auto = true;
     }
 
-    //mercury_dll.touch_start(touch_res_auto_scan);
+    mercury_dll.touch_start(touch_res_auto_scan);
     return hr;
 }
 
