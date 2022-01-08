@@ -1,7 +1,6 @@
 LIBRARY mercuryhook
 
 EXPORTS
-    Direct3DCreate9
     aime_io_get_api_version
     aime_io_init
     aime_io_led_set_color
@@ -16,5 +15,6 @@ EXPORTS
     mercury_io_get_gamebtns
     mercury_io_get_opbtns
     mercury_io_touch_init
+    mercury_io_touch_start
     mercury_io_init
     mercury_io_poll

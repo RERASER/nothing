@@ -8,15 +8,48 @@
 
 /*
 Wacca Default key binding
+Inner left
+Inner right
+2nd inner left
+2nd inner right
+3rd inner left
+3rd inner right
+outer left
+outer right
 */
+
+static const int mercury_io_default_cells[] = {
+    '1','1','1','2','2','2','3','3','3','4','4','4','5','5','5','6','6','6','7','7','7','8','8','8','9','9','9','0','0','0',
+    'A','A','A','S','S','S','D','D','D','F','F','F','G','G','G','H','H','H','J','J','J','K','K','K','L','L','L',';',';',';',
+    '1','1','1','2','2','2','3','3','3','4','4','4','5','5','5','6','6','6','7','7','7','8','8','8','9','9','9','0','0','0',
+    'A','A','A','S','S','S','D','D','D','F','F','F','G','G','G','H','H','H','J','J','J','K','K','K','L','L','L',';',';',';',
+    'Q','Q','Q','W','W','W','E','E','E','R','R','R','T','T','T','Y','Y','Y','U','U','U','I','I','I','O','O','O','P','P','P',
+    'Z','Z','Z','X','X','X','C','C','C','V','V','V','B','B','B','N','N','N','M','M','M',',',',',',','.','.','.','/','/','/',
+    'Q','Q','Q','W','W','W','E','E','E','R','R','R','T','T','T','Y','Y','Y','U','U','U','I','I','I','O','O','O','P','P','P',
+    'Z','Z','Z','X','X','X','C','C','C','V','V','V','B','B','B','N','N','N','M','M','M',',',',',',','.','.','.','/','/','/',
+};
 
 void mercury_io_config_load(
         struct mercury_io_config *cfg,
         const wchar_t *filename)
 {
+    wchar_t key[240];
+    int i;
+
     assert(cfg != NULL);
     assert(filename != NULL);
 
-    cfg->vk_test = GetPrivateProfileIntW(L"io4", L"test", '1', filename);
-    cfg->vk_service = GetPrivateProfileIntW(L"io4", L"service", '2', filename);
+    cfg->vk_test = GetPrivateProfileIntW(L"io4", L"test", 0x2D, filename);
+    cfg->vk_service = GetPrivateProfileIntW(L"io4", L"service", 0x2E, filename);
+    cfg->vk_vol_up = GetPrivateProfileIntW(L"io4", L"volup", 0x24, filename);
+    cfg->vk_vol_down = GetPrivateProfileIntW(L"io4", L"voldown", 0x23, filename);
+
+    for (i = 0 ; i < 240 ; i++) {
+        swprintf_s(key, _countof(key), L"cell%i", i + 1);
+        cfg->vk_cell[i] = GetPrivateProfileIntW(
+                L"touch",
+                key,
+                mercury_io_default_cells[i],
+                filename);
+    }
 }

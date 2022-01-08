@@ -10,15 +10,8 @@ enum {
 };
 
 enum {
-    MERCURY_IO_GAMEBTN_1 = 0x01,
-    MERCURY_IO_GAMEBTN_2 = 0x02,
-    MERCURY_IO_GAMEBTN_3 = 0x04,
-    MERCURY_IO_GAMEBTN_4 = 0x08,
-    MERCURY_IO_GAMEBTN_5 = 0x10,
-    MERCURY_IO_GAMEBTN_6 = 0x20,
-    MERCURY_IO_GAMEBTN_7 = 0x40,
-    MERCURY_IO_GAMEBTN_8 = 0x80,
-    MERCURY_IO_GAMEBTN_SELECT = 0x100,
+    MERCURY_IO_GAMEBTN_VOL_UP = 0x01,
+    MERCURY_IO_GAMEBTN_VOL_DOWN = 0x02,
 };
 
 /* Get the version of the Wacca IO API that this DLL supports. This
@@ -64,6 +57,8 @@ void mercury_io_get_opbtns(uint8_t *opbtn);
 
    Minimum API version: 0x0100 */
 
-void mercury_io_get_gamebtns(uint16_t *player1, uint16_t *player2);
+void mercury_io_get_gamebtns(uint8_t *gamebtn);
 
 HRESULT mercury_io_touch_init(void);
+
+HRESULT mercury_io_touch_start(void);

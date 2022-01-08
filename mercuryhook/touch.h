@@ -9,9 +9,9 @@ struct touch_config {
 };
 
 enum touch_cmd {
-    CMD_GET_REV_DATE = 0xa0,
+    CMD_GET_SYNC_BOARD_VER = 0xa0,
     CMD_STARTUP = 0x72,
-    CMD_GET_REV_DATE_DETAIL = 0xa8,
+    CMD_GET_UNIT_BOARD_VER = 0xa8,
     CMD_MYSTERY1 = 0xa2,
     CMD_MYSTERY2 = 0x94,
     CMD_START_AUTO_SCAN = 0xc9,
@@ -37,18 +37,18 @@ struct touch_input_frame {
     uint8_t checksum;
 };
 
-struct touch_resp_get_rev_date {
+struct touch_resp_get_sync_board_ver {
     uint8_t cmd;
-    uint8_t data[6];
+    char version[6];
 };
 
 struct touch_resp_startup {
-    uint8_t data[80];
+    char data[80];
 };
 
-struct touch_resp_get_rev_date_detail {
+struct touch_resp_get_unit_board_ver {
     uint8_t cmd;
-    uint8_t data[43];
+    uint8_t version[43];
 };
 
 struct touch_resp_mystery1 {

@@ -31,9 +31,9 @@ static HRESULT touch_frame_decode(struct touch_req *dest, struct iobuf *iobuf, i
 static HRESULT touch_frame_encode(struct iobuf *dest, const void *ptr, size_t nbytes);
 static uint8_t calc_checksum(const void *ptr, size_t nbytes);
 
-static HRESULT touch_handle_get_rev_date(const struct touch_req *req);
+static HRESULT touch_handle_get_sync_board_ver(const struct touch_req *req);
 static HRESULT touch_handle_startup(const struct touch_req *req);
-static HRESULT touch_handle_get_rev_date_detail(const struct touch_req *req);
+static HRESULT touch_handle_get_unit_board_ver(const struct touch_req *req);
 static HRESULT touch_handle_mystery1(const struct touch_req *req);
 static HRESULT touch_handle_mystery2(const struct touch_req *req);
 static HRESULT touch_handle_start_auto_scan(const struct touch_req *req);
@@ -55,10 +55,9 @@ HRESULT touch_hook_init(const struct touch_config *cfg)
     assert(cfg != NULL);
     assert(mercury_dll.touch_init != NULL);
 
-    // not sure why this always returns false...
-    /*if (!cfg->enable) {
+    if (!cfg->enable) {
         return S_FALSE;
-    }*/
+    }
 
     InitializeCriticalSection(&touch0_lock);
     InitializeCriticalSection(&touch1_lock);
@@ -200,12 +199,12 @@ static HRESULT touch1_handle_irp_locked(struct irp *irp)
 static HRESULT touch_req_dispatch(const struct touch_req *req)
 {
     switch (req->cmd) {
-    case CMD_GET_REV_DATE:
-        return touch_handle_get_rev_date(req);
+    case CMD_GET_SYNC_BOARD_VER:
+        return touch_handle_get_sync_board_ver(req);
     case CMD_STARTUP:
         return touch_handle_startup(req);
-    case CMD_GET_REV_DATE_DETAIL:
-        return touch_handle_get_rev_date_detail(req);
+    case CMD_GET_UNIT_BOARD_VER:
+        return touch_handle_get_unit_board_ver(req);
     case CMD_MYSTERY1:
         return touch_handle_mystery1(req);
     case CMD_MYSTERY2:
@@ -224,17 +223,19 @@ static HRESULT touch_req_dispatch(const struct touch_req *req)
     }
 }
 
-static HRESULT touch_handle_get_rev_date(const struct touch_req *req)
+static HRESULT touch_handle_get_sync_board_ver(const struct touch_req *req)
 {
-    struct touch_resp_get_rev_date resp;
+    struct touch_resp_get_sync_board_ver resp;
     HRESULT hr;
-    uint8_t rev[6] = { 0x31, 0x39, 0x30, 0x35, 0x32, 0x33 };
+    uint8_t sync_board_ver[6] = { 0x31, 0x39, 0x30, 0x35, 0x32, 0x33 };
 
-    dprintf("Wacca Touch%d: Get board rev date\n", req->side);
+    dprintf("Wacca Touch%d: Get sync board version\n", req->side);
 
     resp.cmd = 0xa0;
-    memcpy(resp.data, rev, sizeof(rev));
-    //resp.data = rev;
+    // TODO: Why does strcpy_s here give a runtime warning and not work????
+    //strcpy_s(resp.version, sizeof(resp.version), "190523");
+    memcpy(resp.version, sync_board_ver, sizeof(sync_board_ver));
+
 
     if (req->side == 0) {
         hr = touch_frame_encode(&touch0_uart.readable, &resp, sizeof(resp));
@@ -252,7 +253,8 @@ static HRESULT touch_handle_startup(const struct touch_req *req)
     HRESULT hr;
     uint8_t *rev;
 
-    dprintf("Wacca Touch%d: Startup\n", req->side);
+    dprintf("Wacca Touch%d: Startup %2hx\n", req->side, req->data[2]);
+
 
     switch (req->data[2]) {
         case 0x30:
@@ -298,19 +300,19 @@ static HRESULT touch_handle_startup(const struct touch_req *req)
     return hr;
 }
 
-static HRESULT touch_handle_get_rev_date_detail(const struct touch_req *req)
+static HRESULT touch_handle_get_unit_board_ver(const struct touch_req *req)
 {
-    struct touch_resp_get_rev_date_detail resp;
+    struct touch_resp_get_unit_board_ver resp;
     HRESULT hr;
-    uint8_t rev[43] = { 0x31, 0x39, 0x30, 0x35, 0x32, 0x33, 0x52, 0x31,
+    uint8_t unit_board_ver[43] = { 0x31, 0x39, 0x30, 0x35, 0x32, 0x33, 0x52, 0x31,
     0x39, 0x30, 0x35, 0x31, 0x34, 0x31, 0x39, 0x30, 0x35, 0x31, 0x34, 0x31,
     0x39, 0x30, 0x35, 0x31, 0x34, 0x31, 0x39, 0x30, 0x35, 0x31, 0x34, 0x31,
     0x39, 0x30, 0x35, 0x31, 0x34, 0x31, 0x39, 0x30, 0x35, 0x31, 0x34 };
 
-    dprintf("Wacca Touch%d: get rev date detail\n", req->side);
+    dprintf("Wacca Touch%d: get unit board version\n", req->side);
 
     resp.cmd = 0xa8;
-    memcpy(resp.data, rev, sizeof(rev));
+    memcpy(resp.version, unit_board_ver, sizeof(unit_board_ver));
 
     if (req->side == 0) {
         hr = touch_frame_encode(&touch0_uart.readable, &resp, sizeof(resp));
@@ -406,12 +408,7 @@ static HRESULT touch_frame_decode(struct touch_req *dest, struct iobuf *iobuf, i
     return S_OK;
 }
 
-/* Encode and send the response.
- * The last byte of every response is a checksum.
- * This checksum is calculated by bitwise XORing
- * every byte in the response, then dropping the MSB.
- * Thanks the CrazyRedMachine for figuring that out!!
- */
+/* Encode and send the response. */
 static HRESULT touch_frame_encode(struct iobuf *dest, const void *ptr, size_t nbytes)
 {
     const uint8_t *src;
@@ -428,6 +425,11 @@ static HRESULT touch_frame_encode(struct iobuf *dest, const void *ptr, size_t nb
     return S_OK;
 }
 
+/* The last byte of every response is a checksum.
+ * This checksum is calculated by bitwise XORing
+ * every byte in the response, then dropping the MSB.
+ * Thanks the CrazyRedMachine for figuring that out!!
+ */
 static uint8_t calc_checksum(const void *ptr, size_t nbytes)
 {
     const uint8_t *src;

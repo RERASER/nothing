@@ -38,7 +38,6 @@ static DWORD CALLBACK mercury_pre_startup(void)
     /* Hook Win32 APIs */
 
     dvd_hook_init(&mercury_hook_cfg.dvd, mercury_hook_mod);
-    gfx_hook_init(&mercury_hook_cfg.gfx, mercury_hook_mod);
     serial_hook_init();
 
     /* Initialize emulation hooks */

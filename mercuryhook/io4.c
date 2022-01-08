@@ -34,6 +34,7 @@ HRESULT mercury_io4_hook_init(const struct io4_config *cfg)
 static HRESULT mercury_io4_poll(void *ctx, struct io4_state *state)
 {
     uint8_t opbtn;
+    uint8_t gamebtn;
     HRESULT hr;
 
     assert(mercury_dll.poll != NULL);
@@ -49,8 +50,10 @@ static HRESULT mercury_io4_poll(void *ctx, struct io4_state *state)
     }
 
     opbtn = 0;
+    gamebtn = 0;
 
     mercury_dll.get_opbtns(&opbtn);
+    mercury_dll.get_gamebtns(&gamebtn);
 
     if (opbtn & MERCURY_IO_OPBTN_TEST) {
         state->buttons[0] |= IO4_BUTTON_TEST;
@@ -58,6 +61,14 @@ static HRESULT mercury_io4_poll(void *ctx, struct io4_state *state)
 
     if (opbtn & MERCURY_IO_OPBTN_SERVICE) {
         state->buttons[0] |= IO4_BUTTON_SERVICE;
+    }
+
+    if (gamebtn & MERCURY_IO_GAMEBTN_VOL_UP) {
+        state->buttons[0] |= 1 << 1;
+    }
+
+    if (gamebtn & MERCURY_IO_GAMEBTN_VOL_DOWN) {
+        state->buttons[0] |= 1 << 0;
     }
 
     return S_OK;
