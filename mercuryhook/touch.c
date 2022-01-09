@@ -36,7 +36,7 @@ static HRESULT touch_handle_get_unit_board_ver(const struct touch_req *req);
 static HRESULT touch_handle_mystery1(const struct touch_req *req);
 static HRESULT touch_handle_mystery2(const struct touch_req *req);
 static HRESULT touch_handle_start_auto_scan(const struct touch_req *req);
-static void touch_res_auto_scan(const uint8_t *state);
+static void touch_res_auto_scan(const bool *state);
 
 uint8_t input_frame_count_0 = 0x7b;
 uint8_t input_frame_count_1 = 0x7b;
@@ -409,18 +409,18 @@ static HRESULT touch_handle_start_auto_scan(const struct touch_req *req)
     return hr;
 }
 
-static void touch_res_auto_scan(const uint8_t *state)
+static void touch_res_auto_scan(const bool *state)
 {
     struct touch_input_frame frame0;
     //struct touch_input_frame frame1;
-    uint8_t data1[24] = { 0 };
+    uint8_t data[24] = { 0 };
     uint8_t data2[9] = { 0x0d, 0x03, 0x02, 0x01, 0x00, 0x00, 0x00, 0x01, 0x00 };
 
     frame0.cmd = 0x81;
     frame0.count = input_frame_count_0++;
     input_frame_count_0 %= 0x7f;
     // for now return no data
-    memcpy(frame0.data1, data1, sizeof(data1));
+    memcpy(frame0.data1, data, sizeof(data));
     memcpy(frame0.data2, data2, sizeof(data2));
     frame0.checksum = 0;
     frame0.checksum = calc_checksum(&frame0, sizeof(frame0));

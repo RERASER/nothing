@@ -89,21 +89,21 @@ void mercury_io_touch_start(mercury_io_touch_callback_t callback)
 static unsigned int __stdcall mercury_io_touch_thread_proc(void *ctx)
 {
     mercury_io_touch_callback_t callback;
-    uint8_t pressure[240];
+    bool cellPressed[240];
     size_t i;
 
     callback = ctx;
 
     while (!mercury_io_touch_stop_flag) {
-        for (i = 0 ; i < _countof(pressure) ; i++) {
-            if (GetAsyncKeyState(mercury_io_cfg.vk_cell[i]) & 0x8000) {
-                pressure[i] = 128;
+        for (i = 0 ; i < _countof(cellPressed) ; i++) {
+            if (GetAsyncKeyState(mercury_io_cfg.vk_cell[i])) {
+                cellPressed[i] = true;
             } else {
-                pressure[i] = 0;
+                cellPressed[i] = false;
             }
         }
 
-        callback(pressure);
+        callback(cellPressed);
         Sleep(1);
     }
 

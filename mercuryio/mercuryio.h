@@ -14,7 +14,7 @@ enum {
     MERCURY_IO_GAMEBTN_VOL_DOWN = 0x02,
 };
 
-typedef void (*mercury_io_touch_callback_t)(const uint8_t *state);
+typedef void (*mercury_io_touch_callback_t)(const bool *state);
 /* Get the version of the Wacca IO API that this DLL supports. This
    function should return a positive 16-bit integer, where the high byte is
    the major version and the low byte is the minor version (as defined by the
