@@ -28,7 +28,6 @@ static HRESULT touch1_handle_irp_locked(struct irp *irp);
 static HRESULT touch_req_dispatch(const struct touch_req *req);
 
 static HRESULT touch_frame_decode(struct touch_req *dest, struct iobuf *iobuf, int side);
-static HRESULT touch_frame_encode(struct iobuf *dest, const void *ptr, size_t nbytes);
 static uint8_t calc_checksum(const void *ptr, size_t nbytes);
 
 static HRESULT touch_handle_get_sync_board_ver(const struct touch_req *req);
@@ -244,10 +243,10 @@ static HRESULT touch_handle_get_sync_board_ver(const struct touch_req *req)
 
 
     if (req->side == 0) {
-        hr = touch_frame_encode(&touch0_uart.readable, &resp, sizeof(resp));
+        hr = iobuf_write(&touch0_uart.readable, &resp, sizeof(resp));
     }
     else {
-        hr = touch_frame_encode(&touch1_uart.readable, &resp, sizeof(resp));
+        hr = iobuf_write(&touch1_uart.readable, &resp, sizeof(resp));
     }
     return hr;
 }
@@ -300,10 +299,10 @@ static HRESULT touch_handle_startup(const struct touch_req *req)
     resp.checksum = calc_checksum(&resp, sizeof(resp));
 
     if (req->side == 0) {
-        hr = touch_frame_encode(&touch0_uart.readable, &resp, sizeof(resp));
+        hr = iobuf_write(&touch0_uart.readable, &resp, sizeof(resp));
     }
     else {
-        hr = touch_frame_encode(&touch1_uart.readable, &resp, sizeof(resp));
+        hr = iobuf_write(&touch1_uart.readable, &resp, sizeof(resp));
     }
     return hr;
 }
@@ -325,10 +324,10 @@ static HRESULT touch_handle_get_unit_board_ver(const struct touch_req *req)
     resp.checksum = calc_checksum(&resp, sizeof(resp));
 
     if (req->side == 0) {
-        hr = touch_frame_encode(&touch0_uart.readable, &resp, sizeof(resp));
+        hr = iobuf_write(&touch0_uart.readable, &resp, sizeof(resp));
     }
     else {
-        hr = touch_frame_encode(&touch1_uart.readable, &resp, sizeof(resp));
+        hr = iobuf_write(&touch1_uart.readable, &resp, sizeof(resp));
     }
     return hr;
 
@@ -347,10 +346,10 @@ static HRESULT touch_handle_mystery1(const struct touch_req *req)
     resp.checksum = calc_checksum(&resp, sizeof(resp));
 
     if (req->side == 0) {
-        hr = touch_frame_encode(&touch0_uart.readable, &resp, sizeof(resp));
+        hr = iobuf_write(&touch0_uart.readable, &resp, sizeof(resp));
     }
     else {
-        hr = touch_frame_encode(&touch1_uart.readable, &resp, sizeof(resp));
+        hr = iobuf_write(&touch1_uart.readable, &resp, sizeof(resp));
     }
     return hr;
 }
@@ -368,10 +367,10 @@ static HRESULT touch_handle_mystery2(const struct touch_req *req)
     resp.checksum = calc_checksum(&resp, sizeof(resp));
 
     if (req->side == 0) {
-        hr = touch_frame_encode(&touch0_uart.readable, &resp, sizeof(resp));
+        hr = iobuf_write(&touch0_uart.readable, &resp, sizeof(resp));
     }
     else {
-        hr = touch_frame_encode(&touch1_uart.readable, &resp, sizeof(resp));
+        hr = iobuf_write(&touch1_uart.readable, &resp, sizeof(resp));
     }
     return hr;
 }
@@ -397,12 +396,12 @@ static HRESULT touch_handle_start_auto_scan(const struct touch_req *req)
 
     if (req->side == 0) {
         resp.frame.count = input_frame_count_0++;
-        hr = touch_frame_encode(&touch0_uart.readable, &resp, sizeof(resp));
+        hr = iobuf_write(&touch0_uart.readable, &resp, sizeof(resp));
         touch0_auto = true;
     }
     else {
         resp.frame.count = input_frame_count_1++;
-        hr = touch_frame_encode(&touch1_uart.readable, &resp, sizeof(resp));
+        hr = iobuf_write(&touch1_uart.readable, &resp, sizeof(resp));
         touch1_auto = true;
     }
 
@@ -418,13 +417,8 @@ static void touch_res_auto_scan(const uint8_t *state)
     uint8_t data2[9] = { 0x0d, 0x03, 0x02, 0x01, 0x00, 0x00, 0x00, 0x01, 0x00 };
 
     frame0.cmd = 0x81;
-    if (input_frame_count_0 == 0x7f) {
-        frame0.count = 0x7f;
-        input_frame_count_0 = 0;
-    }
-    else {
-        frame0.count = input_frame_count_0++;
-    }
+    frame0.count = input_frame_count_0++;
+    input_frame_count_0 %= 0x7f;
     // for now return no data
     memcpy(frame0.data1, data1, sizeof(data1));
     memcpy(frame0.data2, data2, sizeof(data2));
@@ -434,14 +428,14 @@ static void touch_res_auto_scan(const uint8_t *state)
     if (touch0_auto) {
         //dprintf("Wacca touch: Touch0 auto frame #%2hx sent\n", frame0.count);
         EnterCriticalSection(&touch0_lock);
-        touch_frame_encode(&touch0_uart.readable, &frame0, sizeof(frame0));
+        iobuf_write(&touch0_uart.readable, &frame0, sizeof(frame0));
         LeaveCriticalSection(&touch0_lock);
     }
 
     if (touch1_auto) {
         //dprintf("Wacca touch: Touch1 auto frame #%2hx sent\n", frame0.count);
         EnterCriticalSection(&touch1_lock);
-        touch_frame_encode(&touch1_uart.readable, &frame0, sizeof(frame0));
+        iobuf_write(&touch1_uart.readable, &frame0, sizeof(frame0));
         LeaveCriticalSection(&touch1_lock);
     }
 }
@@ -460,20 +454,6 @@ static HRESULT touch_frame_decode(struct touch_req *dest, struct iobuf *iobuf, i
         }
     }
     iobuf->pos -= dest->data_length;
-
-    return S_OK;
-}
-
-/* Encode and send the response. */
-static HRESULT touch_frame_encode(struct iobuf *dest, const void *ptr, size_t nbytes)
-{
-    const uint8_t *src;
-
-    src = ptr;
-
-    for (size_t i = 0; i < nbytes; i++) {
-        dest->bytes[dest->pos++] = src[i];
-    }
 
     return S_OK;
 }
