@@ -319,14 +319,18 @@ static HRESULT touch_handle_get_unit_board_ver(const struct touch_req *req)
     dprintf("Wacca Touch%d: get unit board version\n", req->side);
 
     resp.cmd = 0xa8;
-    memcpy(resp.version, unit_board_ver, sizeof(unit_board_ver));
-    resp.checksum = 0;
-    resp.checksum = calc_checksum(&resp, sizeof(resp));
 
-    if (req->side == 0) {
+    if (req->side == 0) {        
+        memcpy(resp.version, unit_board_ver, sizeof(unit_board_ver));
+        resp.checksum = 0;
+        resp.checksum = calc_checksum(&resp, sizeof(resp));
         hr = iobuf_write(&touch0_uart.readable, &resp, sizeof(resp));
     }
     else {
+        unit_board_ver[6] = 0x4c;
+        memcpy(resp.version, unit_board_ver, sizeof(unit_board_ver));
+        resp.checksum = 0;
+        resp.checksum = calc_checksum(&resp, sizeof(resp));
         hr = iobuf_write(&touch1_uart.readable, &resp, sizeof(resp));
     }
     return hr;
@@ -368,7 +372,7 @@ static HRESULT touch_handle_mystery2(const struct touch_req *req)
 
     if (req->side == 0) {
         hr = iobuf_write(&touch0_uart.readable, &resp, sizeof(resp));
-    }
+    }    
     else {
         hr = iobuf_write(&touch1_uart.readable, &resp, sizeof(resp));
     }
@@ -419,7 +423,7 @@ static void touch_res_auto_scan(const bool *state)
     frame0.cmd = 0x81;
     frame0.count = input_frame_count_0++;
     input_frame_count_0 %= 0x7f;
-    // for now return no data
+    
     memcpy(frame0.data1, data, sizeof(data));
     memcpy(frame0.data2, data2, sizeof(data2));
     frame0.checksum = 0;
