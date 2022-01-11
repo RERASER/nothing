@@ -416,18 +416,45 @@ static HRESULT touch_handle_start_auto_scan(const struct touch_req *req)
 static void touch_res_auto_scan(const bool *state)
 {
     struct touch_input_frame frame0;
-    //struct touch_input_frame frame1;
-    uint8_t data[24] = { 0 };
+    struct touch_input_frame frame1;
+    uint8_t dataR[24] = { 0 };
+    uint8_t dataL[24] = { 0 };
+    // this changes every input on a real board but
+    // the game doesn't seem to care about it...
     uint8_t data2[9] = { 0x0d, 0x03, 0x02, 0x01, 0x00, 0x00, 0x00, 0x01, 0x00 };
+    uint8_t counter = 0;
 
     frame0.cmd = 0x81;
     frame0.count = input_frame_count_0++;
     input_frame_count_0 %= 0x7f;
+
+    frame1.cmd = 0x81;
+    frame1.count = input_frame_count_1++;
+    input_frame_count_1 %= 0x7f;
+
+    for (int i = 0; i < 24; i++) {
+        for (int j = 0; j < 5; j++) {
+            if (state[counter]) {
+                dataR[i] |= (1 << j);
+            }
+            if (state[counter+120]) {
+                dataL[i] |= (1 << j);
+            }
+            counter++;
+        }
+    }
     
-    memcpy(frame0.data1, data, sizeof(data));
+    memcpy(frame0.data1, dataR, sizeof(dataR));
     memcpy(frame0.data2, data2, sizeof(data2));
+
+    memcpy(frame1.data1, dataL, sizeof(dataL));
+    memcpy(frame1.data2, data2, sizeof(data2));
+    
     frame0.checksum = 0;
     frame0.checksum = calc_checksum(&frame0, sizeof(frame0));
+
+    frame1.checksum = 0;
+    frame1.checksum = calc_checksum(&frame1, sizeof(frame1));
 
     if (touch0_auto) {
         //dprintf("Wacca touch: Touch0 auto frame #%2hx sent\n", frame0.count);
@@ -439,7 +466,7 @@ static void touch_res_auto_scan(const bool *state)
     if (touch1_auto) {
         //dprintf("Wacca touch: Touch1 auto frame #%2hx sent\n", frame0.count);
         EnterCriticalSection(&touch1_lock);
-        iobuf_write(&touch1_uart.readable, &frame0, sizeof(frame0));
+        iobuf_write(&touch1_uart.readable, &frame1, sizeof(frame1));
         LeaveCriticalSection(&touch1_lock);
     }
 }

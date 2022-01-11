@@ -6,27 +6,15 @@
 
 #include "mercuryio/config.h"
 
-/*
-Wacca Default key binding
-Inner left
-Inner right
-2nd inner left
-2nd inner right
-3rd inner left
-3rd inner right
-outer left
-outer right
-*/
-
 static const int mercury_io_default_cells[] = {
     '1','1','1','2','2','2','3','3','3','4','4','4','5','5','5','6','6','6','7','7','7','8','8','8','9','9','9','0','0','0',
-    'A','A','A','S','S','S','D','D','D','F','F','F','G','G','G','H','H','H','J','J','J','K','K','K','L','L','L',';',';',';',
     '1','1','1','2','2','2','3','3','3','4','4','4','5','5','5','6','6','6','7','7','7','8','8','8','9','9','9','0','0','0',
-    'A','A','A','S','S','S','D','D','D','F','F','F','G','G','G','H','H','H','J','J','J','K','K','K','L','L','L',';',';',';',
     'Q','Q','Q','W','W','W','E','E','E','R','R','R','T','T','T','Y','Y','Y','U','U','U','I','I','I','O','O','O','P','P','P',
-    'Z','Z','Z','X','X','X','C','C','C','V','V','V','B','B','B','N','N','N','M','M','M',',',',',',','.','.','.','/','/','/',
     'Q','Q','Q','W','W','W','E','E','E','R','R','R','T','T','T','Y','Y','Y','U','U','U','I','I','I','O','O','O','P','P','P',
-    'Z','Z','Z','X','X','X','C','C','C','V','V','V','B','B','B','N','N','N','M','M','M',',',',',',','.','.','.','/','/','/',
+    'A','A','A','S','S','S','D','D','D','F','F','F','G','G','G','H','H','H','J','J','J','K','K','K','L','L','L',VK_OEM_1,VK_OEM_1,VK_OEM_1,    
+    'A','A','A','S','S','S','D','D','D','F','F','F','G','G','G','H','H','H','J','J','J','K','K','K','L','L','L',VK_OEM_1,VK_OEM_1,VK_OEM_1,    
+    'Z','Z','Z','X','X','X','C','C','C','V','V','V','B','B','B','N','N','N','M','M','M',VK_OEM_COMMA,VK_OEM_COMMA,VK_OEM_COMMA,VK_OEM_PERIOD,VK_OEM_PERIOD,VK_OEM_PERIOD,VK_OEM_2,VK_OEM_2,VK_OEM_2,   
+    'Z','Z','Z','X','X','X','C','C','C','V','V','V','B','B','B','N','N','N','M','M','M',VK_OEM_COMMA,VK_OEM_COMMA,VK_OEM_COMMA,VK_OEM_PERIOD,VK_OEM_PERIOD,VK_OEM_PERIOD,VK_OEM_2,VK_OEM_2,VK_OEM_2,
 };
 
 void mercury_io_config_load(
