@@ -312,7 +312,7 @@ static HRESULT STDMETHODCALLTYPE my_IDXGIFactory_CreateSwapChain(
         ShowWindow(hwnd, SW_RESTORE);
 
         if (!gfx_config.framed && width > 0 && height > 0) {
-            dprintf("DXGI: Resizing window to %ldx%ld\n", width, height);
+            dprintf("DXGI: Resizing window to %ux%u\n", width, height);
 
             SetWindowLongPtrW(hwnd, GWL_STYLE, WS_POPUP);
             SetWindowLongPtrW(hwnd, GWL_EXSTYLE, WS_EX_TOPMOST);

@@ -10,7 +10,7 @@ struct touch_config {
 
 enum touch_cmd {
     CMD_GET_SYNC_BOARD_VER = 0xa0,
-    CMD_STARTUP = 0x72,
+    CMD_NEXT_READ = 0x72,
     CMD_GET_UNIT_BOARD_VER = 0xa8,
     CMD_MYSTERY1 = 0xa2,
     CMD_MYSTERY2 = 0x94,

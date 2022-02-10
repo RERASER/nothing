@@ -5,6 +5,7 @@
 #include "board/config.h"
 
 #include "hooklib/dvd.h"
+#include "gfxhook/gfx.h"
 
 #include "mercuryhook/mercury-dll.h"
 #include "mercuryhook/touch.h"
@@ -16,6 +17,7 @@ struct mercury_hook_config {
     struct aime_config aime;
     struct dvd_config dvd;
     struct io4_config io4;
+    struct gfx_config gfx;
     struct mercury_dll_config dll;
     struct touch_config touch;
 };

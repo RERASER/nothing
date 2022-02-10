@@ -31,7 +31,7 @@ static HRESULT touch_frame_decode(struct touch_req *dest, struct iobuf *iobuf, i
 static uint8_t calc_checksum(const void *ptr, size_t nbytes);
 
 static HRESULT touch_handle_get_sync_board_ver(const struct touch_req *req);
-static HRESULT touch_handle_startup(const struct touch_req *req);
+static HRESULT touch_handle_next_read(const struct touch_req *req);
 static HRESULT touch_handle_get_unit_board_ver(const struct touch_req *req);
 static HRESULT touch_handle_mystery1(const struct touch_req *req);
 static HRESULT touch_handle_mystery2(const struct touch_req *req);
@@ -204,8 +204,8 @@ static HRESULT touch_req_dispatch(const struct touch_req *req)
     switch (req->cmd) {
     case CMD_GET_SYNC_BOARD_VER:
         return touch_handle_get_sync_board_ver(req);
-    case CMD_STARTUP:
-        return touch_handle_startup(req);
+    case CMD_NEXT_READ:
+        return touch_handle_next_read(req);
     case CMD_GET_UNIT_BOARD_VER:
         return touch_handle_get_unit_board_ver(req);
     case CMD_MYSTERY1:
@@ -252,13 +252,13 @@ static HRESULT touch_handle_get_sync_board_ver(const struct touch_req *req)
 }
 
 /* TODO: Very ugly please make better before upstreaming */
-static HRESULT touch_handle_startup(const struct touch_req *req)
+static HRESULT touch_handle_next_read(const struct touch_req *req)
 {
     struct touch_resp_startup resp;
     HRESULT hr;
     uint8_t *rev;
 
-    dprintf("Wacca Touch%d: Startup %2hx\n", req->side, req->data[2]);
+    dprintf("Wacca Touch%d: Read section %2hx\n", req->side, req->data[2]);
 
 
     switch (req->data[2]) {
@@ -290,7 +290,7 @@ static HRESULT touch_handle_startup(const struct touch_req *req)
             0x20, 0x20, 0x20, 0x34 };
             break;
         default:
-            dprintf("Wacca touch: BAD STARTUP REQUEST %2hx\n", req->data[2]);
+            dprintf("Wacca touch: BAD READ REQUEST %2hx\n", req->data[2]);
             return 1;
     }
 
@@ -342,7 +342,7 @@ static HRESULT touch_handle_mystery1(const struct touch_req *req)
     struct touch_resp_mystery1 resp;
     HRESULT hr;
 
-    dprintf("Wacca Touch%d: mystery command 1\n", req->side);
+    dprintf("Wacca Touch%d: Command A2\n", req->side);
 
     resp.cmd = 0xa2;
     resp.data = 0x3f;
@@ -363,7 +363,7 @@ static HRESULT touch_handle_mystery2(const struct touch_req *req)
     struct touch_resp_mystery2 resp;
     HRESULT hr;
 
-    dprintf("Wacca Touch%d: mystery command 2\n", req->side);
+    dprintf("Wacca Touch%d: Command 94\n", req->side);
 
     resp.cmd = 0x94;
     resp.data = 0;

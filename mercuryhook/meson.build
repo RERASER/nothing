@@ -11,6 +11,7 @@ shared_library(
     ],
     link_with : [
         aimeio_lib,
+        gfxhook_lib,
         board_lib,
         hooklib_lib,
         mercuryio_lib,

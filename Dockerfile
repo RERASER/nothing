@@ -35,6 +35,7 @@ COPY mu3hook mu3hook
 COPY mu3io mu3io
 COPY pki pki
 COPY platform platform
+COPY gfxhook gfxhook
 COPY reg reg
 COPY spike spike
 COPY subprojects subprojects

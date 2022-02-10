@@ -9,6 +9,9 @@
 #include "hooklib/serial.h"
 #include "hooklib/spike.h"
 
+#include "gfxhook/gfx.h"
+#include "gfxhook/d3d11.h"
+
 #include "mercuryhook/config.h"
 #include "mercuryhook/io4.h"
 #include "mercuryhook/mercury-dll.h"
@@ -39,6 +42,9 @@ static DWORD CALLBACK mercury_pre_startup(void)
 
     dvd_hook_init(&mercury_hook_cfg.dvd, mercury_hook_mod);
     serial_hook_init();
+
+    gfx_hook_init(&mercury_hook_cfg.gfx);
+    gfx_d3d11_hook_init(&mercury_hook_cfg.gfx, mercury_hook_mod);
 
     /* Initialize emulation hooks */
 

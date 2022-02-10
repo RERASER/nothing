@@ -19,7 +19,7 @@ void gfx_util_borderless_fullscreen_windowed(HWND hwnd, UINT width, UINT height)
     BOOL ok;
     HRESULT hr;
 
-    dprintf("Gfx: Resizing window to %ldx%ld\n", width, height);
+    dprintf("Gfx: Resizing window to %ux%u\n", width, height);
 
     SetWindowLongPtrW(hwnd, GWL_STYLE, WS_POPUP);
     SetWindowLongPtrW(hwnd, GWL_EXSTYLE, WS_EX_TOPMOST);
