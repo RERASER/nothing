@@ -8,12 +8,14 @@ shared_library(
     dependencies : [
         capnhook.get_variable('hook_dep'),
         capnhook.get_variable('hooklib_dep'),
+        shlwapi_lib,
         xinput_lib,
     ],
     link_with : [
         aimeio_lib,
         amex_lib,
         board_lib,
+        gfxhook_lib,
         hooklib_lib,
         idzio_lib,
         jvs_lib,

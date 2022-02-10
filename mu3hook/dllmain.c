@@ -6,6 +6,11 @@
 #include "board/sg-reader.h"
 #include "board/vfd.h"
 
+#include "gfxhook/d3d9.h"
+#include "gfxhook/d3d11.h"
+#include "gfxhook/dxgi.h"
+#include "gfxhook/gfx.h"
+
 #include "hook/process.h"
 
 #include "hooklib/dvd.h"
@@ -38,7 +43,10 @@ static DWORD CALLBACK mu3_pre_startup(void)
     /* Hook Win32 APIs */
 
     dvd_hook_init(&mu3_hook_cfg.dvd, mu3_hook_mod);
-    gfx_hook_init(&mu3_hook_cfg.gfx, mu3_hook_mod);
+    gfx_hook_init(&mu3_hook_cfg.gfx);
+    gfx_d3d9_hook_init(&mu3_hook_cfg.gfx, mu3_hook_mod);
+    gfx_d3d11_hook_init(&mu3_hook_cfg.gfx, mu3_hook_mod);
+    gfx_dxgi_hook_init(&mu3_hook_cfg.gfx, mu3_hook_mod);
     serial_hook_init();
 
     /* Initialize emulation hooks */

@@ -17,8 +17,6 @@ hooklib_lib = static_library(
         'dvd.h',
         'fdshark.c',
         'fdshark.h',
-        'gfx.c',
-        'gfx.h',
         'path.c',
         'path.h',
         'reg.c',

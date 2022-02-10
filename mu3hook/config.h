@@ -4,8 +4,9 @@
 
 #include "board/config.h"
 
+#include "gfxhook/gfx.h"
+
 #include "hooklib/dvd.h"
-#include "hooklib/gfx.h"
 
 #include "mu3hook/mu3-dll.h"
 

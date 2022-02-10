@@ -1,6 +1,11 @@
 LIBRARY mu3hook
 
 EXPORTS
+    CreateDXGIFactory
+    CreateDXGIFactory1
+    CreateDXGIFactory2
+    D3D11CreateDevice
+    D3D11CreateDeviceAndSwapChain
     Direct3DCreate9
     aime_io_get_api_version
     aime_io_init

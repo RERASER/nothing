@@ -13,7 +13,6 @@
 
 #include "hook/process.h"
 
-#include "hooklib/gfx.h"
 #include "hooklib/serial.h"
 #include "hooklib/spike.h"
 

@@ -7,6 +7,8 @@
 
 #include "board/sg-reader.h"
 
+#include "gfxhook/gfx.h"
+
 #include "hooklib/dvd.h"
 
 #include "idzhook/idz-dll.h"
@@ -19,6 +21,7 @@ struct idz_hook_config {
     struct amex_config amex;
     struct aime_config aime;
     struct dvd_config dvd;
+    struct gfx_config gfx;
     struct idz_dll_config dll;
     struct zinput_config zinput;
 };

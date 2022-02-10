@@ -17,6 +17,8 @@ util_lib = static_library(
         'dprintf.h',
         'dump.c',
         'dump.h',
+        'lib.c',
+        'lib.h',
         'str.c',
         'str.h',
     ],

@@ -13,6 +13,7 @@ shared_library(
     link_with : [
         aimeio_lib,
         board_lib,
+        gfxhook_lib,
         hooklib_lib,
         mu3io_lib,
         platform_lib,
