@@ -7,6 +7,7 @@
 enum {
     MERCURY_IO_OPBTN_TEST = 0x01,
     MERCURY_IO_OPBTN_SERVICE = 0x02,
+    MERCURY_IO_OPBTN_COIN = 0x04,
 };
 
 enum {

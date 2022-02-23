@@ -40,6 +40,10 @@ HRESULT mercury_io_poll(void)
         mercury_opbtn |= MERCURY_IO_OPBTN_SERVICE;
     }
 
+    if (GetAsyncKeyState(mercury_io_cfg.vk_coin)) {
+        mercury_opbtn |= MERCURY_IO_OPBTN_COIN;
+    }
+
     if (GetAsyncKeyState(mercury_io_cfg.vk_vol_up)) {
         mercury_gamebtn |= MERCURY_IO_GAMEBTN_VOL_UP;
     }

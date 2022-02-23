@@ -29,6 +29,7 @@ void mercury_io_config_load(
 
     cfg->vk_test = GetPrivateProfileIntW(L"io4", L"test", 0x2D, filename);
     cfg->vk_service = GetPrivateProfileIntW(L"io4", L"service", 0x2E, filename);
+    cfg->vk_coin = GetPrivateProfileIntW(L"io4", L"coin", 0x24, filename);
     cfg->vk_vol_up = GetPrivateProfileIntW(L"io4", L"volup", 0x26, filename);
     cfg->vk_vol_down = GetPrivateProfileIntW(L"io4", L"voldown", 0x28, filename);
 
