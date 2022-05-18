@@ -21,6 +21,9 @@
 #include "util/dprintf.h"
 #include "util/dump.h"
 
+const char SYNC_BOARD_VER[6] = "190523";
+const char UNIT_BOARD_VER[6] = "190514";
+
 static HRESULT touch_handle_irp(struct irp *irp);
 static HRESULT touch0_handle_irp_locked(struct irp *irp);
 static HRESULT touch1_handle_irp_locked(struct irp *irp);
@@ -230,17 +233,13 @@ static HRESULT touch_handle_get_sync_board_ver(const struct touch_req *req)
 {
     struct touch_resp_get_sync_board_ver resp;
     HRESULT hr;
-    uint8_t sync_board_ver[6] = { 0x31, 0x39, 0x30, 0x35, 0x32, 0x33 };
 
     dprintf("Wacca Touch%d: Get sync board version\n", req->side);
 
     resp.cmd = 0xa0;
-    // TODO: Why does strcpy_s here give a runtime warning and not work????
-    //strcpy_s(resp.version, sizeof(resp.version), "190523");
-    memcpy(resp.version, sync_board_ver, sizeof(sync_board_ver));
+    memcpy(resp.version, SYNC_BOARD_VER, sizeof(SYNC_BOARD_VER));
     resp.checksum = 0;
     resp.checksum = calc_checksum(&resp, sizeof(resp));
-
 
     if (req->side == 0) {
         hr = iobuf_write(&touch0_uart.readable, &resp, sizeof(resp));
@@ -248,53 +247,36 @@ static HRESULT touch_handle_get_sync_board_ver(const struct touch_req *req)
     else {
         hr = iobuf_write(&touch1_uart.readable, &resp, sizeof(resp));
     }
+
     return hr;
 }
 
-/* TODO: Very ugly please make better before upstreaming */
 static HRESULT touch_handle_next_read(const struct touch_req *req)
 {
     struct touch_resp_startup resp;
     HRESULT hr;
-    uint8_t *rev;
+    char *rev;
 
     dprintf("Wacca Touch%d: Read section %2hx\n", req->side, req->data[2]);
 
 
     switch (req->data[2]) {
+        // These can be found in the config file
         case 0x30:
-            rev = (uint8_t[80]) { 0x20, 0x20, 0x20, 0x20, 0x30, 0x20, 0x20, 0x20, 0x20, 0x30, 0x20,
-            0x20, 0x20, 0x20, 0x31, 0x20, 0x20, 0x20, 0x20, 0x32, 0x20, 0x20, 0x20, 0x20,
-            0x33, 0x20, 0x20, 0x20, 0x20, 0x34, 0x20, 0x20, 0x20, 0x20, 0x35, 0x20, 0x20,
-            0x20, 0x31, 0x35, 0x20, 0x20, 0x20, 0x31, 0x35, 0x20, 0x20, 0x20, 0x31, 0x35,
-            0x20, 0x20, 0x20, 0x31, 0x35, 0x20, 0x20, 0x20, 0x31, 0x35, 0x20, 0x20, 0x20,
-            0x31, 0x35, 0x20, 0x20, 0x20, 0x31, 0x31, 0x20, 0x20, 0x20, 0x31, 0x31, 0x20,
-            0x20, 0x20, 0x31, 0x31 };
+            rev = "    0    0    1    2    3    4    5   15   15   15   15   15   15   11   11   11";
             break;
         case 0x31:
-            rev = (uint8_t[80]) { 0x20, 0x20, 0x20, 0x31, 0x31, 0x20, 0x20, 0x20, 0x31, 0x31, 0x20,
-            0x20, 0x20, 0x31, 0x31, 0x20, 0x20, 0x31, 0x32, 0x38, 0x20, 0x20, 0x31, 0x30,
-            0x33, 0x20, 0x20, 0x31, 0x30, 0x33, 0x20, 0x20, 0x31, 0x31, 0x35, 0x20, 0x20,
-            0x31, 0x33, 0x38, 0x20, 0x20, 0x31, 0x32, 0x37, 0x20, 0x20, 0x31, 0x30, 0x33,
-            0x20, 0x20, 0x31, 0x30, 0x35, 0x20, 0x20, 0x31, 0x31, 0x31, 0x20, 0x20, 0x31,
-            0x32, 0x36, 0x20, 0x20, 0x31, 0x31, 0x33, 0x20, 0x20, 0x20, 0x39, 0x35, 0x20,
-            0x20, 0x31, 0x30, 0x30 };
+            rev = "   11   11   11  128  103  103  115  138  127  103  105  111  126  113   95  100";
             break;
         case 0x33:
-            rev = (uint8_t[80]) { 0x20, 0x20, 0x31, 0x30, 0x31, 0x20, 0x20, 0x31, 0x31, 0x35, 0x20,
-            0x20, 0x20, 0x39, 0x38, 0x20, 0x20, 0x20, 0x38, 0x36, 0x20, 0x20, 0x20, 0x37,
-            0x36, 0x20, 0x20, 0x20, 0x36, 0x37, 0x20, 0x20, 0x20, 0x36, 0x38, 0x20, 0x20,
-            0x20, 0x34, 0x38, 0x20, 0x20, 0x31, 0x31, 0x37, 0x20, 0x20, 0x20, 0x20, 0x30,
-            0x20, 0x20, 0x20, 0x38, 0x32, 0x20, 0x20, 0x31, 0x35, 0x34, 0x20, 0x20, 0x20,
-            0x20, 0x30, 0x20, 0x20, 0x20, 0x20, 0x36, 0x20, 0x20, 0x20, 0x33, 0x35, 0x20,
-            0x20, 0x20, 0x20, 0x34 };
+           rev = "  101  115   98   86   76   67   68   48  117    0   82  154    0    6   35    4";
             break;
         default:
             dprintf("Wacca touch: BAD READ REQUEST %2hx\n", req->data[2]);
             return 1;
     }
 
-    memcpy(resp.data, rev, 80 * sizeof(uint8_t));
+    memcpy(resp.data, rev, 80 * sizeof(char));
     resp.checksum = 0;
     resp.checksum = calc_checksum(&resp, sizeof(resp));
 
@@ -311,30 +293,46 @@ static HRESULT touch_handle_get_unit_board_ver(const struct touch_req *req)
 {
     struct touch_resp_get_unit_board_ver resp;
     HRESULT hr;
-    uint8_t unit_board_ver[43] = { 0x31, 0x39, 0x30, 0x35, 0x32, 0x33, 0x52, 0x31,
-    0x39, 0x30, 0x35, 0x31, 0x34, 0x31, 0x39, 0x30, 0x35, 0x31, 0x34, 0x31,
-    0x39, 0x30, 0x35, 0x31, 0x34, 0x31, 0x39, 0x30, 0x35, 0x31, 0x34, 0x31,
-    0x39, 0x30, 0x35, 0x31, 0x34, 0x31, 0x39, 0x30, 0x35, 0x31, 0x34 };
 
     dprintf("Wacca Touch%d: get unit board version\n", req->side);
 
+    memset(resp.version, 0, sizeof(resp.version));
+    memcpy(resp.version, SYNC_BOARD_VER, sizeof(SYNC_BOARD_VER));
+
+    for (int i = 0; i < 6; i++ )
+        memcpy(&resp.version[7 + (6 * i)], UNIT_BOARD_VER, sizeof(UNIT_BOARD_VER));
+
     resp.cmd = 0xa8;
+    resp.checksum = 0;
 
     if (req->side == 0) {        
-        memcpy(resp.version, unit_board_ver, sizeof(unit_board_ver));
-        resp.checksum = 0;
+        resp.version[6] = 'R';
         resp.checksum = calc_checksum(&resp, sizeof(resp));
+
+        #if 0
+        for (int i = 0; i < sizeof(resp.version); i++) {
+            dprintf("0x%02x ", resp.version[i]);
+        }
+        dprintf("\n");
+        #endif
+
         hr = iobuf_write(&touch0_uart.readable, &resp, sizeof(resp));
     }
     else {
-        unit_board_ver[6] = 0x4c;
-        memcpy(resp.version, unit_board_ver, sizeof(unit_board_ver));
-        resp.checksum = 0;
+        resp.version[6] = 'L';
         resp.checksum = calc_checksum(&resp, sizeof(resp));
+
+        #if 0
+        for (int i = 0; i < sizeof(resp.version); i++) {
+            dprintf("0x%02x ", resp.version[i]);
+        }
+        dprintf("\n");
+        #endif
+
         hr = iobuf_write(&touch1_uart.readable, &resp, sizeof(resp));
     }
-    return hr;
 
+    return hr;
 }
 
 static HRESULT touch_handle_mystery1(const struct touch_req *req)
@@ -384,9 +382,17 @@ static HRESULT touch_handle_start_auto_scan(const struct touch_req *req)
     struct touch_resp_start_auto resp;
     HRESULT hr;
     uint8_t data1[24] = { 0 };
+    // Unsure what this does. It seems to change every request on a real board,
+    // but the game doesn't seem to mind that it's the same
     uint8_t data2[9] = { 0x0d, 0x03, 0x02, 0x01, 0x00, 0x00, 0x00, 0x01, 0x00 };
 
-    dprintf("Wacca Touch%d: Start Auto\n", req->side);
+    dprintf("Wacca Touch%d: Start Auto", req->side);
+
+    #if 0
+    for (int i = 0; i < req->data_length; i++)
+        dprintf("0x%02x ", req->data[i]);
+    #endif
+    dprintf("\n");
 
     resp.cmd = 0x9c;
     resp.data = 0;
