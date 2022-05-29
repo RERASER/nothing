@@ -67,7 +67,7 @@ HRESULT touch_hook_init(const struct touch_config *cfg)
 
     InitializeCriticalSection(&touch0_lock);
     InitializeCriticalSection(&touch1_lock);
-    dprintf("Wacca touch: init\n");
+    dprintf("Wacca touch: Init\n");
 
     uart_init(&touch0_uart, 3);
     touch0_uart.written.bytes = touch0_written_bytes;

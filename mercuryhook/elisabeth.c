@@ -35,6 +35,7 @@ static const struct hook_symbol win32_hooks[] = {
 HRESULT elisabeth_hook_init()
 {
     dll_hook_insert_hooks(NULL);
+    dprintf("Elisabeth: Init\n");
     return S_OK;
 }
 
