@@ -43,6 +43,22 @@ $(BUILD_DIR_ZIP)/mercury.zip:
 	$(V)strip $(BUILD_DIR_ZIP)/mercury/*.{exe,dll}
 	$(V)cd $(BUILD_DIR_ZIP)/mercury ; zip -r ../mercury.zip *
 
+
+$(BUILD_DIR_ZIP)/mu3.zip:
+	$(V)echo ... $@
+	$(V)mkdir -p $(BUILD_DIR_ZIP)/mu3
+	$(V)mkdir -p $(BUILD_DIR_ZIP)/mu3/DEVICE
+	$(V)cp $(BUILD_DIR_64)/subprojects/capnhook/inject/inject.exe \
+		$(BUILD_DIR_64)/mu3hook/mu3hook.dll \
+		$(DIST_DIR)/mu3/segatools.ini \
+		$(DIST_DIR)/mu3/start.bat \
+    	$(BUILD_DIR_ZIP)/mu3
+	$(V)cp pki/billing.pub \
+		pki/ca.crt \
+    	$(BUILD_DIR_ZIP)/mu3/DEVICE
+	$(V)strip $(BUILD_DIR_ZIP)/mu3/*.{exe,dll}
+	$(V)cd $(BUILD_DIR_ZIP)/mu3 ; zip -r ../mu3.zip *
+
 $(BUILD_DIR_ZIP)/doc.zip: \
 		$(DOC_DIR)/config \
 		$(DOC_DIR)/chunihook.md \
@@ -56,6 +72,7 @@ $(BUILD_DIR_ZIP)/segatools.zip: \
 		$(BUILD_DIR_ZIP)/doc.zip \
 		$(BUILD_DIR_ZIP)/idz.zip \
 		$(BUILD_DIR_ZIP)/mercury.zip \
+		$(BUILD_DIR_ZIP)/mu3.zip \
 		CHANGELOG.md \
 		README.md \
 
