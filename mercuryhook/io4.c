@@ -61,10 +61,10 @@ static HRESULT mercury_io4_poll(void *ctx, struct io4_state *state)
 
     if (opbtn & MERCURY_IO_OPBTN_SERVICE) {
         state->buttons[0] |= IO4_BUTTON_SERVICE;
-    }    
+    }
 
     if (opbtn & MERCURY_IO_OPBTN_COIN) {
-        state->chutes[0] |= 1 << 8; // FIXME: Inserts 15 extra coins on release of button
+        state->chutes[0] += 256; // TODO: Test
     }
 
     if (gamebtn & MERCURY_IO_GAMEBTN_VOL_UP) {
