@@ -34,6 +34,7 @@ $(BUILD_DIR_ZIP)/mercury.zip:
 	$(V)mkdir -p $(BUILD_DIR_ZIP)/mercury/DEVICE
 	$(V)cp $(BUILD_DIR_64)/subprojects/capnhook/inject/inject.exe \
 		$(BUILD_DIR_64)/mercuryhook/mercuryhook.dll \
+		$(BUILD_DIR_64)/mercuryio/mercuryio.dll \
 		$(DIST_DIR)/mercury/segatools.ini \
 		$(DIST_DIR)/mercury/start.bat \
     	$(BUILD_DIR_ZIP)/mercury

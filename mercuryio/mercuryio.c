@@ -6,6 +6,7 @@
 
 #include "mercuryio/mercuryio.h"
 #include "mercuryio/config.h"
+#include "mercuryhook/elisabeth.h"
 
 static unsigned int __stdcall mercury_io_touch_thread_proc(void *ctx);
 
@@ -88,6 +89,11 @@ void mercury_io_touch_start(mercury_io_touch_callback_t callback)
         0,
         NULL
     );
+}
+
+void mercury_io_touch_set_leds(struct led_data data)
+{
+
 }
 
 static unsigned int __stdcall mercury_io_touch_thread_proc(void *ctx)

@@ -23,6 +23,7 @@ static void dll_hook_insert_hooks(HMODULE target);
 static FARPROC WINAPI my_GetProcAddress(HMODULE hModule, const char *name);
 static FARPROC (WINAPI *next_GetProcAddress)(HMODULE hModule, const char *name);
 static int my_USBIntLED_Init();
+static int my_USBIntLED_set();
 
 static const struct hook_symbol win32_hooks[] = {
     {
@@ -59,6 +60,10 @@ FARPROC WINAPI my_GetProcAddress(HMODULE hModule, const char *name)
         if (strcmp(name, "USBIntLED_Init") == 0) {
             result = (FARPROC) my_USBIntLED_Init;
         }
+
+        if (strcmp(name, "USBIntLED_set") == 0) {
+            result = (FARPROC) my_USBIntLED_set;
+        }
     }
 
     return result;
@@ -68,5 +73,12 @@ FARPROC WINAPI my_GetProcAddress(HMODULE hModule, const char *name)
 static int my_USBIntLED_Init()
 {
     dprintf("Elisabeth: my_USBIntLED_Init hit!\n");
+    return 1;
+}
+
+static int my_USBIntLED_set(int data1, struct led_data data2)
+{
+    assert(mercury_dll.set_leds != NULL);
+    mercury_dll.set_leds(data2);
     return 1;
 }
