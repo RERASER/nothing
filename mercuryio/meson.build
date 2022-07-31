@@ -11,3 +11,12 @@ mercuryio_lib = static_library(
         'config.h',
     ],
 )
+
+shared_library(
+    'mercuryio',
+    name_prefix : '',
+    vs_module_defs : 'mercuryio.def',
+    link_with : [
+        mercuryio_lib,
+    ],
+)

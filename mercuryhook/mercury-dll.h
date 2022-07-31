@@ -3,6 +3,7 @@
 #include <windows.h>
 
 #include "mercuryio/mercuryio.h"
+#include "mercuryhook/elisabeth.h"
 
 struct mercury_dll {
     uint16_t api_version;
@@ -12,6 +13,7 @@ struct mercury_dll {
     void (*get_gamebtns)(uint8_t *gamebtn);
     HRESULT (*touch_init)(void);
     void (*touch_start)(mercury_io_touch_callback_t callback);
+    void (*set_leds)(struct led_data data);
 };
 
 struct mercury_dll_config {

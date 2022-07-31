@@ -4,6 +4,8 @@
 
 #include <stdint.h>
 
+#include "mercuryhook/elisabeth.h"
+
 enum {
     MERCURY_IO_OPBTN_TEST = 0x01,
     MERCURY_IO_OPBTN_SERVICE = 0x02,
@@ -64,3 +66,5 @@ void mercury_io_get_gamebtns(uint8_t *gamebtn);
 HRESULT mercury_io_touch_init(void);
 
 void mercury_io_touch_start(mercury_io_touch_callback_t callback);
+
+void mercury_io_touch_set_leds(struct led_data data);
