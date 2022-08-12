@@ -64,7 +64,7 @@ static HRESULT mercury_io4_poll(void *ctx, struct io4_state *state)
     }
 
     if (opbtn & MERCURY_IO_OPBTN_COIN) {
-        state->chutes[0] += 256; // TODO: Test
+        state->chutes[0] += 1 << 8; // FIXME: Inserts 1 credit on press, then 15 on release...
     }
 
     if (gamebtn & MERCURY_IO_GAMEBTN_VOL_UP) {

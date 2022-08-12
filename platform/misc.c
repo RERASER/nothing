@@ -20,6 +20,7 @@ static HRESULT misc_read_app_loader_count(void *bytes, uint32_t *nbytes);
 static HRESULT misc_read_cpu_temp_error(void *bytes, uint32_t *nbytes);
 static HRESULT misc_read_cpu_temp_warning(void *bytes, uint32_t *nbytes);
 static HRESULT misc_read_platform_id(void *bytes, uint32_t *nbytes);
+static HRESULT misc_read_platform_name(void *bytes, uint32_t *nbytes);
 
 static const struct hook_symbol misc_syms[] = {
     {
@@ -64,6 +65,10 @@ static const struct reg_hook_val misc_static_keys[] = {
     }, {
         .name   = L"PlatformId",
         .read   = misc_read_platform_id,
+        .type   = REG_SZ,
+    }, {
+        .name   = L"PlatformName",
+        .read   = misc_read_platform_name,
         .type   = REG_SZ,
     }
 };
@@ -159,4 +164,9 @@ static HRESULT misc_read_cpu_temp_warning(void *bytes, uint32_t *nbytes)
 static HRESULT misc_read_platform_id(void *bytes, uint32_t *nbytes)
 {
     return reg_hook_read_wstr(bytes, nbytes, misc_platform_id);
+}
+
+static HRESULT misc_read_platform_name(void *bytes, uint32_t *nbytes)
+{
+    return reg_hook_read_wstr(bytes, nbytes, L"ALLS MX2.1"); // TODO: Dynamic
 }
