@@ -3,12 +3,16 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 
 #include "board/io4.h"
 
 #include "mercuryhook/mercury-dll.h"
 
 #include "util/dprintf.h"
+
+bool mercury_io_coin = false;
+uint16_t mercury_io_coins = 0;
 
 static HRESULT mercury_io4_poll(void *ctx, struct io4_state *state);
 
@@ -64,8 +68,16 @@ static HRESULT mercury_io4_poll(void *ctx, struct io4_state *state)
     }
 
     if (opbtn & MERCURY_IO_OPBTN_COIN) {
-        state->chutes[0] += 1 << 8; // FIXME: Inserts 1 credit on press, then 15 on release...
+        if (!mercury_io_coin) {
+            mercury_io_coin = true;
+            mercury_io_coins++;
+        }
     }
+    else {
+        mercury_io_coin = false;
+    }
+
+    state->chutes[0] = 128 + 256 * mercury_io_coins;
 
     if (gamebtn & MERCURY_IO_GAMEBTN_VOL_UP) {
         state->buttons[0] |= 1 << 1;

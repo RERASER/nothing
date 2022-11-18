@@ -89,6 +89,16 @@ static LSTATUS WINAPI hook_RegSetValueExW(
         const void *bytes,
         uint32_t nbytes);
 
+static LSTATUS WINAPI hook_RegGetValueW(
+    HKEY    hkey,
+    LPCWSTR lpSubKey,
+    LPCWSTR lpValue,
+    uint32_t   flags,
+    uint32_t *type,
+    void   *pData,
+    uint32_t *numData
+);
+
 /* Link pointers */
 
 static LSTATUS (WINAPI *next_RegOpenKeyExW)(
@@ -135,6 +145,16 @@ static LSTATUS (WINAPI *next_RegSetValueExW)(
         const void *bytes,
         uint32_t nbytes);
 
+static LSTATUS (WINAPI *next_RegGetValueW)(
+    HKEY    hkey,
+    LPCWSTR lpSubKey,
+    LPCWSTR lpValue,
+    uint32_t   flags,
+    uint32_t *type,
+    void   *pData,
+    uint32_t *numData
+);
+
 static const struct hook_symbol reg_hook_syms[] = {
     {
         .name   = "RegOpenKeyExW",
@@ -160,6 +180,10 @@ static const struct hook_symbol reg_hook_syms[] = {
         .name   = "RegSetValueExW",
         .patch  = hook_RegSetValueExW,
         .link   = (void **) &next_RegSetValueExW,
+    }, {
+        .name   = "RegGetValueW",
+        .patch  = hook_RegGetValueW,
+        .link   = (void **) &next_RegGetValueW,
     }
 };
 
@@ -184,6 +208,12 @@ HRESULT reg_hook_push_key(
 
     reg_hook_init();
 
+    /*dprintf("Pushing reg key %ls:\n", name);
+
+    for (int i = 0; i < nvals; i++) {
+        dprintf("\t%ls\n", vals[i].name);
+    } */
+    
     EnterCriticalSection(&reg_hook_lock);
 
     new_mem = realloc(
@@ -222,6 +252,7 @@ static void reg_hook_init(void)
 
     reg_hook_initted = true;
     InitializeCriticalSection(&reg_hook_lock);
+    dprintf("Reg hook init\n");
 
     hook_table_apply(
             NULL,
@@ -724,6 +755,69 @@ static LSTATUS WINAPI hook_RegSetValueExW(
 
     LeaveCriticalSection(&reg_hook_lock);
 
+    return err;
+}
+
+static LSTATUS WINAPI hook_RegGetValueW(
+    HKEY    handle,
+    LPCWSTR subkey,
+    LPCWSTR name,
+    uint32_t   flags,
+    uint32_t *type,
+    void   *pData,
+    uint32_t *numData)
+{
+    struct reg_hook_key *key;
+    HKEY tmp = NULL;
+    const struct reg_hook_val *val;
+    LSTATUS err;
+
+    EnterCriticalSection(&reg_hook_lock);
+    //dprintf("Registry: RegGetValueW lookup for %ls\\%ls\n", subkey, name);
+
+    if (subkey == NULL) {
+        key = reg_hook_match_key_locked(handle);
+    } else {
+        err = hook_RegOpenKeyExW(handle, subkey, flags, 1, &tmp);
+        key = reg_hook_match_key_locked(tmp);
+    }
+
+    //dprintf("Registry: RegGetValueW key is %ls", key->name);
+
+    if (key == NULL) {
+        LeaveCriticalSection(&reg_hook_lock);
+        dprintf("Registry: RegGetValueW Failed to find %ls\\%ls, passing on\n", subkey, name);
+
+        return next_RegGetValueW(
+                handle,
+                subkey,
+                name,
+                flags,
+                type,
+                pData,
+                numData);
+    }
+
+    val = reg_hook_match_val_locked(key, name);    
+
+    if (val != NULL) {
+        //dprintf("Registry: RegGetValueW found %ls\\%ls!\n", subkey, name);
+
+        if (val->read != NULL) {
+            val->read(pData, numData);
+
+            if (tmp != NULL) {
+                hook_RegCloseKey(tmp);
+            }
+            
+            LeaveCriticalSection(&reg_hook_lock);
+            err = ERROR_SUCCESS;
+            return err;
+        }        
+    }
+
+    LeaveCriticalSection(&reg_hook_lock);
+    err = ERROR_NOT_FOUND;
     return err;
 }
 
