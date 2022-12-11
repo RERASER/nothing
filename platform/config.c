@@ -222,6 +222,7 @@ void nusec_config_load(struct nusec_config *cfg, const wchar_t *filename)
             filename);
 
     cfg->region = GetPrivateProfileIntW(L"keychip", L"region", 1, filename);
+    cfg->region = GetPrivateProfileIntW(L"keychip", L"billingType", 1, filename);
     cfg->system_flag = GetPrivateProfileIntW(
             L"keychip",
             L"systemFlag",

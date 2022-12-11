@@ -326,6 +326,20 @@ Bit values are:
 - 3: EXP: Export (for Asian markets)
 - 4: CHS: China (Simplified Chinese?)
 
+### `billingType`
+
+Default: `1`
+
+Set the billing "type" for the keychip. The type determins what kind of revenue share,
+if any, the game maker has with SEGA. Some games may be picky and require types other 
+then 1 (ex. Crossbeats requires billing type 2), so this option is provided if this
+is an issue. Billing types are:
+
+- 0: No billing?
+- 1: Billing type A
+- 2: Billing type B1
+- 3: Billing type B2
+
 ### `systemFlag`
 
 Default: `0x64`

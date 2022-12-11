@@ -134,8 +134,9 @@ HRESULT nusec_hook_init(
     if (nusec_cfg.platform_id[0] == '\0') {
         memcpy(nusec_cfg.platform_id, platform_id, sizeof(nusec_cfg.platform_id));
     }
-
-    nusec_nearfull = 0x00010200;
+    
+    // High 16 bits is billing type, low is actual playlimit
+    nusec_nearfull = (nusec_cfg.billing_type << 16) + 512;
     nusec_play_count = 0;
     nusec_play_limit = 1024;
 

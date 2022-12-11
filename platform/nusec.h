@@ -14,6 +14,7 @@ struct nusec_config {
     uint8_t region;
     uint8_t system_flag;
     uint32_t subnet;
+    uint16_t billing_type;
     wchar_t billing_ca[MAX_PATH];
     wchar_t billing_pub[MAX_PATH];
 };
