@@ -1,28 +1,3 @@
 {
   "editor.formatOnSave": false,
-  "files.associations": {
-    "assert.h": "c",
-    "config.h": "c",
-    "backend.h": "c",
-    "idacio.h": "c",
-    "idac-dll.h": "c",
-    "d3d11.h": "c",
-    "mu3-dll.h": "c",
-    "printer.h": "c",
-    "netenv.h": "c",
-    "stdint.h": "c",
-    "string.h": "c",
-    "platform.h": "c",
-    "jvs.h": "c",
-    "sg-reader.h": "c",
-    "carol-dll.h": "c",
-    "slider.h": "c",
-    "slider-cmd.h": "c",
-    "touch.h": "c",
-    "iobd.h": "c",
-    "stdbool.h": "c",
-    "sg-frame.h": "c",
-    "sg-cmd.h": "c",
-    "controlbd.h": "c"
-  }
 }
