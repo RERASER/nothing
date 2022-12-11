@@ -19,6 +19,8 @@ hooklib_lib = static_library(
         'fdshark.h',
         'path.c',
         'path.h',
+        'procaddr.c',
+        'procaddr.h',
         'reg.c',
         'reg.h',
         'setupapi.c',
