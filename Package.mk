@@ -12,6 +12,21 @@ $(BUILD_DIR_ZIP)/chuni.zip:
     	$(BUILD_DIR_ZIP)/chuni/DEVICE
 	$(V)strip $(BUILD_DIR_ZIP)/chuni/*.{exe,dll}
 	$(V)cd $(BUILD_DIR_ZIP)/chuni ; zip -r ../chuni.zip *
+
+$(BUILD_DIR_ZIP)/cxb.zip:
+	$(V)echo ... $@
+	$(V)mkdir -p $(BUILD_DIR_ZIP)/cxb
+	$(V)mkdir -p $(BUILD_DIR_ZIP)/cxb/DEVICE
+	$(V)cp $(BUILD_DIR_32)/subprojects/capnhook/inject/inject.exe \
+		$(BUILD_DIR_32)/cxbhook/cxbhook.dll \
+		$(DIST_DIR)/cxb/segatools.ini \
+		$(DIST_DIR)/cxb/start.bat \
+		$(BUILD_DIR_ZIP)/cxb
+	$(V)cp pki/billing.pub \
+		pki/ca.crt \
+    	$(BUILD_DIR_ZIP)/cxb/DEVICE
+	$(V)strip $(BUILD_DIR_ZIP)/cxb/*.{exe,dll}
+	$(V)cd $(BUILD_DIR_ZIP)/cxb ; zip -r ../cxb.zip *
 	
 $(BUILD_DIR_ZIP)/diva.zip:
 	$(V)echo ... $@
@@ -99,6 +114,7 @@ $(BUILD_DIR_ZIP)/doc.zip: \
 
 $(BUILD_DIR_ZIP)/segatools.zip: \
 		$(BUILD_DIR_ZIP)/chuni.zip \
+		$(BUILD_DIR_ZIP)/cxb.zip \
 		$(BUILD_DIR_ZIP)/carol.zip \
 		$(BUILD_DIR_ZIP)/diva.zip \
 		$(BUILD_DIR_ZIP)/doc.zip \

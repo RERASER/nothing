@@ -19,6 +19,8 @@ COPY amex amex
 COPY board board
 COPY chunihook chunihook
 COPY chuniio chuniio
+COPY cxbhook cxbhook
+COPY cxbio cxbio
 COPY dist dist
 COPY divahook divahook
 COPY divaio divaio

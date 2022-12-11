@@ -62,6 +62,7 @@ static void aime_io_config_read(
             cfg->felica_path,
             _countof(cfg->felica_path),
             filename);
+    dprintf("NFC: felicaPath GetLastError %lx\n", GetLastError());
 
     cfg->felica_gen = GetPrivateProfileIntW(
             L"aime",
