@@ -28,6 +28,11 @@ static const struct reg_hook_val amvideo_reg_vals[] = {
         .name       = L"name",
         .read       = amvideo_reg_read_name,
         .type       = REG_SZ,
+    },
+    {
+        .name       = L"name_x86",
+        .read       = amvideo_reg_read_name,
+        .type       = REG_SZ,
     }
 };
 

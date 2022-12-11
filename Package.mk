@@ -12,6 +12,36 @@ $(BUILD_DIR_ZIP)/chuni.zip:
     	$(BUILD_DIR_ZIP)/chuni/DEVICE
 	$(V)strip $(BUILD_DIR_ZIP)/chuni/*.{exe,dll}
 	$(V)cd $(BUILD_DIR_ZIP)/chuni ; zip -r ../chuni.zip *
+	
+$(BUILD_DIR_ZIP)/diva.zip:
+	$(V)echo ... $@
+	$(V)mkdir -p $(BUILD_DIR_ZIP)/diva
+	$(V)mkdir -p $(BUILD_DIR_ZIP)/diva/DEVICE
+	$(V)cp $(BUILD_DIR_64)/subprojects/capnhook/inject/inject.exe \
+		$(BUILD_DIR_64)/divahook/divahook.dll \
+		$(DIST_DIR)/diva/segatools.ini \
+		$(DIST_DIR)/diva/start.bat \
+		$(BUILD_DIR_ZIP)/diva
+	$(V)cp pki/billing.pub \
+		pki/ca.crt \
+    	$(BUILD_DIR_ZIP)/diva/DEVICE
+	$(V)strip $(BUILD_DIR_ZIP)/diva/*.{exe,dll}
+	$(V)cd $(BUILD_DIR_ZIP)/diva ; zip -r ../diva.zip *
+	
+$(BUILD_DIR_ZIP)/carol.zip:
+	$(V)echo ... $@
+	$(V)mkdir -p $(BUILD_DIR_ZIP)/carol
+	$(V)mkdir -p $(BUILD_DIR_ZIP)/carol/DEVICE
+	$(V)cp $(BUILD_DIR_32)/subprojects/capnhook/inject/inject.exe \
+		$(BUILD_DIR_32)/carolhook/carolhook.dll \
+		$(DIST_DIR)/carol/segatools.ini \
+		$(DIST_DIR)/carol/start.bat \
+		$(BUILD_DIR_ZIP)/carol
+	$(V)cp pki/billing.pub \
+		pki/ca.crt \
+    	$(BUILD_DIR_ZIP)/carol/DEVICE
+	$(V)strip $(BUILD_DIR_ZIP)/carol/*.{exe,dll}
+	$(V)cd $(BUILD_DIR_ZIP)/carol ; zip -r ../carol.zip *
 
 $(BUILD_DIR_ZIP)/idz.zip:
 	$(V)echo ... $@
@@ -69,6 +99,8 @@ $(BUILD_DIR_ZIP)/doc.zip: \
 
 $(BUILD_DIR_ZIP)/segatools.zip: \
 		$(BUILD_DIR_ZIP)/chuni.zip \
+		$(BUILD_DIR_ZIP)/carol.zip \
+		$(BUILD_DIR_ZIP)/diva.zip \
 		$(BUILD_DIR_ZIP)/doc.zip \
 		$(BUILD_DIR_ZIP)/idz.zip \
 		$(BUILD_DIR_ZIP)/mercury.zip \

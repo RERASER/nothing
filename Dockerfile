@@ -22,6 +22,8 @@ COPY chuniio chuniio
 COPY dist dist
 COPY divahook divahook
 COPY divaio divaio
+COPY carolhook carolhook
+COPY carolio carolio
 COPY doc doc
 COPY hooklib hooklib
 COPY iccard iccard
