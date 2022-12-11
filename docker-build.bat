@@ -25,6 +25,7 @@ mkdir "!BUILD_OUTPUT_PATH!"
 docker cp %CONTAINER_NAME%:/segatools/build/zip %BUILD_OUTPUT_PATH%
 
 docker rm -f %CONTAINER_NAME% > nul
+docker image rm -f %IMAGE_NAME% > nul
 
 goto success
 
